@@ -16,6 +16,7 @@ import Test from "./pages/Test";
 import Results from "./pages/Results";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import VerifyCertificate from "./pages/VerifyCertificate";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,8 @@ const App = () => (
               <Route path="/test" element={<Test />} />
               <Route path="/results" element={<Results />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/certificate/:certificateId" element={<VerifyCertificate />} />
+              <Route path="/verify" element={<VerifyCertificate />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

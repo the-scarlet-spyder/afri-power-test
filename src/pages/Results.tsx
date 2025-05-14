@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTest } from '@/context/TestContext';
+import { useAuth } from '@/context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Button } from '@/components/ui/button';
@@ -13,28 +14,40 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Certificate from '@/components/Certificate';
 import { format } from 'date-fns';
+import { saveCertificate } from '@/lib/test-service';
 
 const Results = () => {
-  const { results, categoryResults, resetTest, getCategoryName } = useTest();
+  const { results, categoryResults, resetTest, getCategoryName, testHistory } = useTest();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const testId = searchParams.get('test');
   const [userName, setUserName] = useState<string>("");
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [certificateId, setCertificateId] = useState<string>("");
   const certificateRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    if (!results) {
+    if (!results && !testHistory) {
       const storedResults = localStorage.getItem('inuka_results');
       if (!storedResults) {
         navigate('/test');
       }
     }
     
-    // Try to get user's name from localStorage if available
-    const storedName = localStorage.getItem('user_name');
-    if (storedName) {
-      setUserName(storedName);
+    // Try to get user's name from localStorage or logged in user
+    if (user) {
+      setUserName(user.name);
+    } else {
+      const storedName = localStorage.getItem('user_name');
+      if (storedName) {
+        setUserName(storedName);
+      }
     }
-  }, [results, navigate]);
+    
+    // Generate a certificate ID
+    setCertificateId(generateCertificateId());
+  }, [results, navigate, user, testHistory]);
   
   const handleRetake = () => {
     resetTest();
@@ -56,11 +69,13 @@ const Results = () => {
       });
       return;
     }
+    
     setIsGeneratingPDF(true);
     toast({
       title: "Generating your certificate",
       description: "Please wait while we prepare your PDF certificate...",
     });
+    
     try {
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       // Minimalist, centered layout
@@ -145,6 +160,29 @@ const Results = () => {
       pdf.text('Copyright © Strengths Africa. All rights reserved.', 105, 280, { align: 'center' });
       // Save
       pdf.save(`Strength_Africa_Certificate_${userName.replace(/\s+/g, '_')}.pdf`);
+      
+      // Save certificate to Supabase if user is logged in
+      if (user) {
+        try {
+          const currentTestId = testId || (testHistory && testHistory.length > 0 ? testHistory[0].id : '');
+          if (currentTestId) {
+            await saveCertificate(
+              user.id,
+              currentTestId,
+              userName,
+              certificateId
+            );
+            
+            toast({
+              title: "Certificate saved",
+              description: "Your certificate has been saved to your account.",
+            });
+          }
+        } catch (error) {
+          console.error("Failed to save certificate to Supabase:", error);
+        }
+      }
+      
       toast({
         title: "Certificate Downloaded",
         description: "Your certificate has been successfully downloaded.",
@@ -302,12 +340,17 @@ const Results = () => {
                   className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
+              
+              <div className="flex items-center text-sm text-gray-600 mt-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                Certificate ID: {certificateId}
+              </div>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 onClick={downloadPDF}
-                disabled={isGeneratingPDF}
+                disabled={isGeneratingPDF || !userName.trim()}
                 className="bg-inuka-gold text-inuka-charcoal hover:bg-opacity-90"
               >
                 {isGeneratingPDF ? "Generating PDF..." : "Download PDF Certificate"}
@@ -331,7 +374,7 @@ const Results = () => {
           userName={userName || "Your Name"}
           results={results}
           date={format(new Date(), "MMMM d, yyyy")}
-          certificateId={generateCertificateId()}
+          certificateId={certificateId}
         />
       </div>
       
