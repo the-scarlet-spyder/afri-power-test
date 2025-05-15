@@ -19,7 +19,14 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import VerifyCertificate from "./pages/VerifyCertificate";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30000,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

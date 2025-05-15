@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
@@ -18,49 +18,64 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   const { user, isLoading, hasCompletedTest, checkTestCompletion } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [checkingAuth, setCheckingAuth] = useState(true);
   
   useEffect(() => {
+    let isMounted = true;
+    
     const checkAuth = async () => {
-      if (isLoading) return;
+      if (!isMounted || isLoading) return;
 
-      if (requireAuth && !user) {
-        // User is not authenticated but page requires auth
-        toast({
-          title: "Authentication required",
-          description: "Please log in to access this page.",
-        });
-        navigate(redirectPath, { state: { from: location.pathname } });
-        return;
-      }
+      try {
+        if (requireAuth && !user) {
+          // User is not authenticated but page requires auth
+          toast({
+            title: "Authentication required",
+            description: "Please log in to access this page.",
+          });
+          navigate(redirectPath, { state: { from: location.pathname } });
+          return;
+        }
 
-      if (user && !isLoading) {
-        // User is authenticated, handle smart routing
-        const testTaken = await checkTestCompletion();
-        
-        // Smart routing based on test completion
-        if (location.pathname === '/login' || location.pathname === '/signup') {
-          // If logged in, redirect from auth pages
-          if (testTaken) {
-            navigate('/results');
-          } else {
-            navigate('/test');
+        if (user) {
+          // User is authenticated, handle smart routing
+          const testTaken = await checkTestCompletion();
+          
+          // Smart routing based on test completion
+          if (location.pathname === '/login' || location.pathname === '/signup') {
+            // If logged in, redirect from auth pages
+            if (testTaken) {
+              navigate('/results');
+            } else {
+              navigate('/test');
+            }
+          } else if (location.pathname === '/') {
+            // From landing page
+            if (testTaken) {
+              navigate('/results');
+            } else {
+              navigate('/test');
+            }
           }
-        } else if (location.pathname === '/') {
-          // From landing page
-          if (testTaken) {
-            navigate('/results');
-          } else {
-            navigate('/test');
-          }
+        }
+      } catch (error) {
+        console.error('Error in AuthGuard:', error);
+      } finally {
+        if (isMounted) {
+          setCheckingAuth(false);
         }
       }
     };
 
     checkAuth();
-  }, [user, isLoading, location.pathname, navigate, checkTestCompletion, hasCompletedTest]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [user, isLoading, location.pathname, navigate, checkTestCompletion, hasCompletedTest, requireAuth, redirectPath]);
 
-  // Show nothing while checking auth status
-  if (isLoading) {
+  // Show loading indicator only during initial auth check
+  if (isLoading || (checkingAuth && requireAuth)) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-pulse text-center">
