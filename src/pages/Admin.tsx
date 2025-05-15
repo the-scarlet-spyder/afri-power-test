@@ -26,7 +26,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 
 // Admin emails that are allowed to access this page
-const ADMIN_EMAILS = ['adrian.m.adepoju@gmail.com']; // Add your admin emails here
+const ADMIN_EMAILS = ['adrian.m.adepoju@gmail.com']; // Make sure your email is correctly listed here
 
 interface TestResult {
   id: string;
@@ -71,6 +71,10 @@ const Admin = () => {
         navigate('/login');
         return;
       }
+
+      console.log("Checking admin access for user:", user.email);
+      console.log("Admin emails:", ADMIN_EMAILS);
+      console.log("Is admin?", ADMIN_EMAILS.includes(user.email));
 
       if (!ADMIN_EMAILS.includes(user.email)) {
         toast({
