@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 interface GoogleSignInButtonProps {
   className?: string;
@@ -14,6 +14,7 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   variant = "outline" 
 }) => {
   const { signInWithGoogle } = useAuth();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
 
   const handleGoogleSignIn = async () => {

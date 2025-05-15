@@ -24,6 +24,7 @@ import {
 import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Admin emails that are allowed to access this page
 const ADMIN_EMAILS = ['adrian.m.adepoju@gmail.com']; // Make sure your email is correctly listed here
@@ -61,8 +62,14 @@ const Admin = () => {
   const { user } = useAuth();
 
   useEffect(() => {
+    // Check if user is loaded yet
+    if (user === undefined) {
+      return; // Wait for user to be loaded
+    }
+    
     const checkAdminAccess = async () => {
       if (!user) {
+        console.log("No user found, redirecting to login");
         toast({
           title: "Access denied",
           description: "You need to be logged in to access this page.",
@@ -95,40 +102,66 @@ const Admin = () => {
   }, [user, navigate, toast]);
 
   const fetchTestResults = async () => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
+      console.log("Fetching test results...");
+      
       // Fetch all test results
       const { data: results, error } = await supabase
         .from('test_results')
         .select('*')
         .order('test_date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching test results:", error);
+        throw error;
+      }
+
+      console.log("Test results fetched:", results?.length || 0);
 
       // Get user emails for each result
       if (results && results.length > 0) {
         const resultsWithUserInfo = await Promise.all(
           results.map(async (result) => {
-            const { data: userData } = await supabase
-              .from('profiles')
-              .select('email, name')
-              .eq('user_id', result.user_id)
-              .single();
+            try {
+              const { data: userData, error: userError } = await supabase
+                .from('profiles')
+                .select('email, name')
+                .eq('user_id', result.user_id)
+                .single();
 
-            return {
-              ...result,
-              user_email: userData?.email || 'Unknown',
-              user_name: userData?.name || 'Unknown'
-            };
+              if (userError) {
+                console.error("Error fetching user data:", userError);
+                return {
+                  ...result,
+                  user_email: 'Unknown',
+                  user_name: 'Unknown'
+                };
+              }
+
+              return {
+                ...result,
+                user_email: userData?.email || 'Unknown',
+                user_name: userData?.name || 'Unknown'
+              };
+            } catch (err) {
+              console.error("Error processing user data for result:", err);
+              return {
+                ...result,
+                user_email: 'Error',
+                user_name: 'Error'
+              };
+            }
           })
         );
 
+        console.log("Results with user info:", resultsWithUserInfo.length);
         setTestResults(resultsWithUserInfo);
       } else {
         setTestResults([]);
       }
     } catch (error) {
-      console.error('Error fetching test results:', error);
+      console.error('Error in fetchTestResults:', error);
       toast({
         title: "Error",
         description: "Failed to load test results.",
@@ -140,40 +173,66 @@ const Admin = () => {
   };
 
   const fetchCertificates = async () => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
+      console.log("Fetching certificates...");
+      
       // Fetch all certificates
       const { data: certs, error } = await supabase
         .from('certificates')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching certificates:", error);
+        throw error;
+      }
+
+      console.log("Certificates fetched:", certs?.length || 0);
 
       // Get user emails for each certificate
       if (certs && certs.length > 0) {
         const certsWithUserInfo = await Promise.all(
           certs.map(async (cert) => {
-            const { data: userData } = await supabase
-              .from('profiles')
-              .select('email, name')
-              .eq('user_id', cert.user_id)
-              .single();
+            try {
+              const { data: userData, error: userError } = await supabase
+                .from('profiles')
+                .select('email, name')
+                .eq('user_id', cert.user_id)
+                .single();
 
-            return {
-              ...cert,
-              user_email: userData?.email || 'Unknown',
-              user_name: userData?.name || 'Unknown'
-            };
+              if (userError) {
+                console.error("Error fetching user data for cert:", userError);
+                return {
+                  ...cert,
+                  user_email: 'Unknown',
+                  user_name: 'Unknown'
+                };
+              }
+
+              return {
+                ...cert,
+                user_email: userData?.email || 'Unknown',
+                user_name: userData?.name || 'Unknown'
+              };
+            } catch (err) {
+              console.error("Error processing user data for certificate:", err);
+              return {
+                ...cert,
+                user_email: 'Error',
+                user_name: 'Error'
+              };
+            }
           })
         );
 
+        console.log("Certificates with user info:", certsWithUserInfo.length);
         setCertificates(certsWithUserInfo);
       } else {
         setCertificates([]);
       }
     } catch (error) {
-      console.error('Error fetching certificates:', error);
+      console.error('Error in fetchCertificates:', error);
       toast({
         title: "Error",
         description: "Failed to load certificates.",
@@ -199,6 +258,22 @@ const Admin = () => {
       return { error: 'Invalid JSON' };
     }
   };
+
+  if (user === undefined) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navbar />
+        <main className="flex-grow container mx-auto py-8 px-4 flex items-center justify-center">
+          <div className="space-y-4 w-full max-w-md">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

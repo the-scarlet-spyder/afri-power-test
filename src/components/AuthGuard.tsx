@@ -1,8 +1,8 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { toast } from '@/components/ui/use-toast';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -10,92 +10,35 @@ interface AuthGuardProps {
   redirectPath?: string;
 }
 
-const AuthGuard: React.FC<AuthGuardProps> = ({ 
-  children, 
+const AuthGuard = ({
+  children,
   requireAuth = true,
-  redirectPath = '/login'
-}) => {
-  const { user, isLoading, hasCompletedTest, checkTestCompletion } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  redirectPath = '/login',
+}: AuthGuardProps) => {
+  const { user, isLoading } = useAuth();
   
-  useEffect(() => {
-    let isMounted = true;
-    
-    const checkAuth = async () => {
-      if (!isMounted || isLoading) return;
-
-      try {
-        if (requireAuth && !user) {
-          // User is not authenticated but page requires auth
-          toast({
-            title: "Authentication required",
-            description: "Please log in to access this page.",
-          });
-          navigate(redirectPath, { state: { from: location.pathname } });
-          return;
-        }
-
-        if (user) {
-          // User is authenticated, handle smart routing
-          const testTaken = await checkTestCompletion();
-          
-          // Smart routing based on test completion
-          if (location.pathname === '/login' || location.pathname === '/signup') {
-            // If logged in, redirect from auth pages
-            if (testTaken) {
-              navigate('/results');
-            } else {
-              navigate('/test');
-            }
-          } else if (location.pathname === '/') {
-            // From landing page
-            if (testTaken) {
-              navigate('/results');
-            } else {
-              navigate('/test');
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error in AuthGuard:', error);
-      } finally {
-        if (isMounted) {
-          setCheckingAuth(false);
-        }
-      }
-    };
-
-    checkAuth();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [user, isLoading, location.pathname, navigate, checkTestCompletion, hasCompletedTest, requireAuth, redirectPath]);
-
-  // Show loading indicator only during initial auth check
-  if (isLoading || (checkingAuth && requireAuth)) {
+  // Show loading state when user is undefined (still initializing)
+  if (user === undefined || isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-pulse text-center">
-          <p className="text-gray-500">Loading...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[50vh] p-4 w-full max-w-md mx-auto">
+        <Skeleton className="h-12 w-full mb-4" />
+        <Skeleton className="h-8 w-3/4 mb-4" />
+        <Skeleton className="h-64 w-full" />
       </div>
     );
   }
 
-  // If we require auth and there's no user, the useEffect will handle redirection
-  if (requireAuth && !user) {
-    return null;
+  // Logged in but needs to be logged out
+  if (user && !requireAuth) {
+    return <Navigate to={redirectPath} replace />;
   }
 
-  // If we don't want authenticated users (like on login page) and have a user
-  if (!requireAuth && user) {
-    // Redirection will be handled by useEffect
-    return null;
+  // Not logged in but needs to be logged in
+  if (!user && requireAuth) {
+    return <Navigate to={redirectPath} replace />;
   }
 
+  // Default case: render children
   return <>{children}</>;
 };
 
