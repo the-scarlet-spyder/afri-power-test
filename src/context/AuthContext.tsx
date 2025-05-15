@@ -13,8 +13,11 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  hasCompletedTest: boolean;
+  checkTestCompletion: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,6 +33,7 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasCompletedTest, setHasCompletedTest] = useState(false);
 
   // Function to convert Supabase User to our app's User format
   const formatUser = (supabaseUser: SupabaseUser | null): User | null => {
@@ -42,6 +46,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   };
 
+  const checkTestCompletion = async (userId?: string) => {
+    try {
+      const id = userId || user?.id;
+      
+      if (!id) return false;
+      
+      const { data, error } = await supabase
+        .from('test_results')
+        .select('id')
+        .eq('user_id', id)
+        .limit(1);
+        
+      if (error) {
+        console.error('Error checking test completion:', error);
+        return false;
+      }
+      
+      const completed = data && data.length > 0;
+      setHasCompletedTest(completed);
+      return completed;
+    } catch (error) {
+      console.error('Error checking test completion:', error);
+      return false;
+    }
+  };
+
   // Check for existing session on mount
   useEffect(() => {
     const fetchSession = async () => {
@@ -51,12 +81,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (error) {
           console.error('Error fetching session:', error);
+          setIsLoading(false);
           return;
         }
         
         if (session) {
           const { data: { user: supabaseUser } } = await supabase.auth.getUser();
-          setUser(formatUser(supabaseUser as SupabaseUser));
+          const formattedUser = formatUser(supabaseUser as SupabaseUser);
+          setUser(formattedUser);
+          
+          if (formattedUser) {
+            await checkTestCompletion(formattedUser.id);
+          }
         }
       } catch (error) {
         console.error('Error checking auth state:', error);
@@ -72,9 +108,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       async (event, session) => {
         if (session) {
           const { user: supabaseUser } = session;
-          setUser(formatUser(supabaseUser as SupabaseUser));
+          const formattedUser = formatUser(supabaseUser as SupabaseUser);
+          setUser(formattedUser);
+          
+          if (formattedUser) {
+            await checkTestCompletion(formattedUser.id);
+          }
         } else {
           setUser(null);
+          setHasCompletedTest(false);
         }
         setIsLoading(false);
       }
@@ -103,7 +145,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
-        setUser(formatUser(data.user as SupabaseUser));
+        const formattedUser = formatUser(data.user as SupabaseUser);
+        setUser(formattedUser);
+        
+        if (formattedUser) {
+          await checkTestCompletion(formattedUser.id);
+        }
+        
         toast({
           title: "Login successful",
           description: "You are now logged in.",
@@ -111,6 +159,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('Error during login:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Google login failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error during Google login:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -140,7 +214,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
-        setUser(formatUser(data.user as SupabaseUser));
+        const formattedUser = formatUser(data.user as SupabaseUser);
+        setUser(formattedUser);
+        setHasCompletedTest(false);
+        
         toast({
           title: "Account created",
           description: "Your account has been created successfully.",
@@ -168,6 +245,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       setUser(null);
+      setHasCompletedTest(false);
       toast({
         title: "Logged out",
         description: "You have been logged out successfully.",
@@ -178,7 +256,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoading, 
+      login, 
+      signInWithGoogle, 
+      signup, 
+      logout, 
+      hasCompletedTest,
+      checkTestCompletion 
+    }}>
       {children}
     </AuthContext.Provider>
   );

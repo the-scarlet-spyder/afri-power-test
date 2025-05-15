@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import GoogleSignInButton from '@/components/GoogleSignInButton';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -14,8 +16,11 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { login } = useAuth();
+  
+  const from = (location.state as { from?: string })?.from || '/';
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,11 +37,7 @@ const Login = () => {
     try {
       setIsSubmitting(true);
       await login(email, password);
-      toast({
-        title: "Success!",
-        description: "You've been logged in.",
-      });
-      navigate('/test');
+      // The AuthGuard component will handle redirection based on test completion
     } catch (error) {
       toast({
         title: "Error",
@@ -57,6 +58,15 @@ const Login = () => {
           <h1 className="text-2xl font-bold text-center text-inuka-brown mb-6">
             Log In to Your Account
           </h1>
+          
+          <GoogleSignInButton className="mb-6" />
+          
+          <div className="relative mb-6">
+            <Separator className="my-4" />
+            <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-gray-500">
+              or continue with email
+            </span>
+          </div>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

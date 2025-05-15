@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthContext";
 import { TestProvider } from "./context/TestContext";
+import AuthGuard from "./components/AuthGuard";
 
 import Landing from "./pages/Landing";
 import Signup from "./pages/Signup";
@@ -30,12 +31,36 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Landing />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/welcome" element={<Welcome />} />
-              <Route path="/test" element={<Test />} />
-              <Route path="/results" element={<Results />} />
-              <Route path="/profile" element={<Profile />} />
+              <Route path="/signup" element={
+                <AuthGuard requireAuth={false} redirectPath="/test">
+                  <Signup />
+                </AuthGuard>
+              } />
+              <Route path="/login" element={
+                <AuthGuard requireAuth={false} redirectPath="/test">
+                  <Login />
+                </AuthGuard>
+              } />
+              <Route path="/welcome" element={
+                <AuthGuard>
+                  <Welcome />
+                </AuthGuard>
+              } />
+              <Route path="/test" element={
+                <AuthGuard>
+                  <Test />
+                </AuthGuard>
+              } />
+              <Route path="/results" element={
+                <AuthGuard>
+                  <Results />
+                </AuthGuard>
+              } />
+              <Route path="/profile" element={
+                <AuthGuard>
+                  <Profile />
+                </AuthGuard>
+              } />
               <Route path="/certificate/:certificateId" element={<VerifyCertificate />} />
               <Route path="/verify" element={<VerifyCertificate />} />
               <Route path="*" element={<NotFound />} />

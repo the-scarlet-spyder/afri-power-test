@@ -8,6 +8,8 @@ import Footer from '../components/Footer';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
+import GoogleSignInButton from '@/components/GoogleSignInButton';
 
 const Signup = () => {
   const [name, setName] = useState('');
@@ -54,11 +56,7 @@ const Signup = () => {
     try {
       setIsSubmitting(true);
       await signup(name, email, password);
-      toast({
-        title: "Success!",
-        description: "Your account has been created.",
-      });
-      navigate('/welcome');
+      // The AuthGuard component will handle redirection based on test completion
     } catch (error) {
       toast({
         title: "Error",
@@ -79,6 +77,15 @@ const Signup = () => {
           <h1 className="text-2xl font-bold text-center text-inuka-charcoal mb-6 font-poppins">
             Create Your Account
           </h1>
+          
+          <GoogleSignInButton className="mb-6" />
+          
+          <div className="relative mb-6">
+            <Separator className="my-4" />
+            <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-gray-500">
+              or sign up with email
+            </span>
+          </div>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
