@@ -26,7 +26,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 
 // Admin emails that are allowed to access this page
-const ADMIN_EMAILS = ['admin@example.com']; // Add your admin emails here
+const ADMIN_EMAILS = ['adrian.m.adepoju@gmail.com']; // Add your admin emails here
 
 interface TestResult {
   id: string;
