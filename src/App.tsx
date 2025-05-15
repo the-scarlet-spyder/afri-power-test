@@ -18,6 +18,7 @@ import Results from "./pages/Results";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import VerifyCertificate from "./pages/VerifyCertificate";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,6 +67,11 @@ const App = () => (
               <Route path="/profile" element={
                 <AuthGuard>
                   <Profile />
+                </AuthGuard>
+              } />
+              <Route path="/admin" element={
+                <AuthGuard>
+                  <Admin />
                 </AuthGuard>
               } />
               <Route path="/certificate/:certificateId" element={<VerifyCertificate />} />

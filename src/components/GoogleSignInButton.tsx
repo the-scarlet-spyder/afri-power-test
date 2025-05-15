@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
+import { toast } from '@/components/ui/use-toast';
 
 interface GoogleSignInButtonProps {
   className?: string;
@@ -18,9 +19,16 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
+      console.log('Attempting Google sign-in...');
       await signInWithGoogle();
-    } catch (error) {
+      // No need to manually redirect, as the auth state change will trigger routing
+    } catch (error: any) {
       console.error('Error signing in with Google:', error);
+      toast({
+        title: "Google sign-in failed",
+        description: error.message || "Could not sign in with Google. Please try again or use email sign-in.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
