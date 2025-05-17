@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -14,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const Test = () => {
   const [checkingCode, setCheckingCode] = useState(true);
@@ -22,18 +24,19 @@ const Test = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { 
-    currentQuestion,
-    totalQuestions,
+    responses, 
     currentQuestionIndex,
-    selectedAnswer,
-    setSelectedAnswer,
-    goToNextQuestion,
-    goToPreviousQuestion,
-    completeTest,
-    isTestComplete,
-    isLoading,
-    error
+    questions,
+    addResponse,
+    calculateResults,
+    getCurrentCategory
   } = useTest();
+  
+  // Temporarily use these until we update the context
+  const [selectedValue, setSelectedValue] = useState<number>(3);
+  const currentQuestion = questions?.[currentQuestionIndex];
+  const progress = ((currentQuestionIndex + 1) / (questions?.length || 1)) * 100;
+  const currentCategory = getCurrentCategory();
   
   useEffect(() => {
     const checkAccessCode = async () => {
@@ -82,132 +85,104 @@ const Test = () => {
     return <AccessCodeVerification />;
   }
 
-  const handleSubmit = () => {
-    if (currentQuestionIndex === totalQuestions - 1) {
-      completeTest();
+  const handleNext = () => {
+    addResponse({
+      questionId: currentQuestion.id,
+      score: selectedValue
+    });
+    
+    setSelectedValue(3); // Reset to neutral for next question
+    
+    if (currentQuestionIndex >= questions.length - 1) {
+      // Test is complete
+      calculateResults();
       navigate('/results');
-    } else {
-      goToNextQuestion();
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F9F9F9]">
-        <div className="text-center p-8 bg-white rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold text-inuka-crimson mb-4">Loading Test...</h2>
-          <p className="text-gray-600">Please wait while we prepare your assessment.</p>
-        </div>
-      </div>
-    );
-  }
+  const getCategoryStyles = () => {
+    switch(currentCategory) {
+      case "Thinking & Learning":
+        return { badgeClass: "strength-badge-thinking", progressClass: "bg-strength-blue" };
+      case "Interpersonal":
+        return { badgeClass: "strength-badge-interpersonal", progressClass: "bg-strength-yellow" };
+      case "Leadership & Influence":
+        return { badgeClass: "strength-badge-leadership", progressClass: "bg-strength-red" };
+      case "Execution & Discipline":
+        return { badgeClass: "strength-badge-execution", progressClass: "bg-strength-green" };
+      case "Identity, Purpose & Values":
+        return { badgeClass: "strength-badge-identity", progressClass: "bg-strength-purple" };
+      default:
+        return { badgeClass: "", progressClass: "bg-primary" };
+    }
+  };
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F9F9F9]">
-        <div className="text-center p-8 bg-white rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-          <p className="text-gray-600 mb-4">There was a problem loading the test. Please try again later.</p>
-          <Button onClick={() => window.location.reload()}>Retry</Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (isTestComplete) {
-    navigate('/results');
-    return null;
-  }
-
-  if (!currentQuestion) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F9F9F9]">
-        <div className="text-center p-8 bg-white rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold text-inuka-crimson mb-4">No Questions Available</h2>
-          <p className="text-gray-600">There are no questions available at this time.</p>
-        </div>
-      </div>
-    );
-  }
-
+  const { badgeClass, progressClass } = getCategoryStyles();
+  
   return (
-    <div className="min-h-screen flex flex-col bg-[#F9F9F9]">
+    <div className="min-h-screen flex flex-col bg-[#F9F9F9] font-inter">
       <Navbar />
       
       <main className="flex-grow py-12">
-        <div className="container mx-auto px-4">
+        <div className="inuka-container">
           <div className="max-w-3xl mx-auto">
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-500">
-                  Question {currentQuestionIndex + 1} of {totalQuestions}
-                </span>
-                <span className="text-sm font-medium text-gray-500">
-                  {Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100)}% Complete
-                </span>
-              </div>
-              <Progress value={((currentQuestionIndex + 1) / totalQuestions) * 100} className="h-2" />
-            </div>
-            
-            <Card className="mb-8 shadow-sm">
+            <Card className="shadow-lg border-none">
               <CardContent className="pt-6">
-                <h2 className="text-xl font-semibold mb-6 text-inuka-charcoal">
-                  {currentQuestion.text}
-                </h2>
+                <div className="mb-6">
+                  <div className="flex justify-between text-sm mb-1">
+                    {currentCategory && <Badge variant="outline" className={badgeClass}>
+                      {currentCategory}
+                    </Badge>}
+                    <span>{Math.round(progress)}%</span>
+                  </div>
+                  <Progress value={progress} className="h-2 bg-gray-200" indicatorClassName={progressClass} />
+                </div>
                 
-                <RadioGroup 
-                  value={selectedAnswer?.toString() || ""} 
-                  onValueChange={(value) => setSelectedAnswer(parseInt(value))}
-                  className="space-y-4"
-                >
-                  {[1, 2, 3, 4, 5].map((value) => (
-                    <div key={value} className="flex items-center space-x-2 rounded-md border p-3 hover:bg-muted/50 transition-colors">
-                      <RadioGroupItem value={value.toString()} id={`option-${value}`} />
-                      <Label htmlFor={`option-${value}`} className="flex-grow cursor-pointer">
-                        {value === 1 && "Strongly Disagree"}
-                        {value === 2 && "Disagree"}
-                        {value === 3 && "Neutral"}
-                        {value === 4 && "Agree"}
-                        {value === 5 && "Strongly Agree"}
-                      </Label>
-                      {selectedAnswer === value && (
-                        <CheckCircle2 className="h-5 w-5 text-inuka-crimson" />
-                      )}
-                    </div>
-                  ))}
-                </RadioGroup>
+                <div className="mb-8 pt-2">
+                  <h2 className="text-xl font-medium mb-10 text-inuka-charcoal text-center font-poppins">
+                    {currentQuestion?.text}
+                  </h2>
+                  
+                  <div className="space-y-10 px-4 py-4">
+                    <RadioGroup 
+                      defaultValue="3" 
+                      className="mt-8"
+                      onValueChange={(value) => setSelectedValue(parseInt(value))}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="1" id="r1" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
+                        <Label htmlFor="r1" className="cursor-pointer">Totally disagree</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="2" id="r2" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
+                        <Label htmlFor="r2" className="cursor-pointer">Disagree</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="3" id="r3" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
+                        <Label htmlFor="r3" className="cursor-pointer">Neutral</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="4" id="r4" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
+                        <Label htmlFor="r4" className="cursor-pointer">Agree</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="5" id="r5" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
+                        <Label htmlFor="r5" className="cursor-pointer">Totally agree</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={handleNext} 
+                    className="bg-inuka-crimson hover:bg-opacity-90 px-8 py-6 text-base"
+                  >
+                    Next
+                  </Button>
+                </div>
               </CardContent>
             </Card>
-            
-            <div className="flex justify-between">
-              <Button
-                onClick={goToPreviousQuestion}
-                disabled={currentQuestionIndex === 0}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Previous
-              </Button>
-              
-              <Button
-                onClick={handleSubmit}
-                disabled={selectedAnswer === null}
-                className="bg-inuka-crimson hover:bg-inuka-crimson/90 text-white flex items-center gap-2"
-              >
-                {currentQuestionIndex === totalQuestions - 1 ? (
-                  <>
-                    Complete Test
-                    <CheckCircle2 className="h-4 w-4" />
-                  </>
-                ) : (
-                  <>
-                    Next
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            </div>
           </div>
         </div>
       </main>
