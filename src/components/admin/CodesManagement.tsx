@@ -96,21 +96,28 @@ const CodesManagement = () => {
 
     setCreatingCode(true);
     try {
-      const { data, error } = await supabase
+      // First, check if code already exists
+      const { data: existingCode, error: checkError } = await supabase
         .from('access_codes')
-        .insert({
-          code: newCode.trim(),
-          created_by: user?.id,
-          batch_name: batchName.trim() || null
-        })
-        .select();
+        .select('id')
+        .eq('code', newCode.trim())
+        .maybeSingle();
 
-      if (error) {
-        if (error.code === '23505') { // Unique violation
-          throw new Error("This code already exists.");
-        }
-        throw error;
+      if (checkError) throw checkError;
+      
+      if (existingCode) {
+        throw new Error("This code already exists.");
       }
+      
+      // Use server-side function to create code (bypassing RLS)
+      const { error } = await supabase
+        .rpc('create_access_code', {
+          _code: newCode.trim(),
+          _created_by: user?.id || null,
+          _batch_name: batchName.trim() || null
+        });
+
+      if (error) throw error;
 
       toast({
         title: "Success",
@@ -133,10 +140,11 @@ const CodesManagement = () => {
 
   const deleteCode = async (id: string) => {
     try {
+      // Use server-side function to delete code (bypassing RLS)
       const { error } = await supabase
-        .from('access_codes')
-        .delete()
-        .eq('id', id);
+        .rpc('delete_access_code', {
+          _code_id: id
+        });
 
       if (error) throw error;
 
@@ -165,16 +173,13 @@ const CodesManagement = () => {
       
       const newBatch = `Batch ${new Date().toISOString().slice(0, 10)}`;
       
-      const codesForInsert = newCodes.map(code => ({
-        code,
-        created_by: user?.id,
-        batch_name: newBatch
-      }));
-
-      const { data, error } = await supabase
-        .from('access_codes')
-        .insert(codesForInsert)
-        .select();
+      // Use server-side function to generate codes (bypassing RLS)
+      const { error } = await supabase
+        .rpc('generate_access_codes', {
+          _codes: newCodes,
+          _created_by: user?.id || null,
+          _batch_name: newBatch
+        });
 
       if (error) throw error;
 
