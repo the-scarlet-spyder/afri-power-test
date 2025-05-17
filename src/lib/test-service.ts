@@ -43,7 +43,7 @@ export const saveTestResults = async (
   }
 };
 
-// Get latest test results for a user
+// Get latest test result for a user
 export const getLatestTestResult = async (userId: string) => {
   console.log("Fetching latest test result for user:", userId);
   try {

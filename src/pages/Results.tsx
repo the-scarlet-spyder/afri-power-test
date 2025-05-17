@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTest } from '@/context/TestContext';
@@ -164,23 +165,47 @@ const Results = () => {
       // Save certificate to Supabase if user is logged in
       if (user) {
         try {
+          // Get the current test result ID - either from URL params or the most recent test
           const currentTestId = testId || (testHistory && testHistory.length > 0 ? testHistory[0].id : '');
+          
           if (currentTestId) {
-            await saveCertificate(
+            console.log("Saving certificate with test ID:", currentTestId);
+            
+            const savedCert = await saveCertificate(
               user.id,
               currentTestId,
               userName,
               certificateId
             );
             
+            if (savedCert) {
+              console.log("Certificate saved successfully with ID:", savedCert.id);
+              
+              toast({
+                title: "Certificate saved",
+                description: "Your certificate has been saved to your account.",
+              });
+            } else {
+              console.error("No data returned from saveCertificate");
+            }
+          } else {
+            console.error("No test ID available to save certificate");
             toast({
-              title: "Certificate saved",
-              description: "Your certificate has been saved to your account.",
+              title: "Warning",
+              description: "Could not save certificate to your account: No test ID found.",
+              variant: "destructive",
             });
           }
         } catch (error) {
           console.error("Failed to save certificate to Supabase:", error);
+          toast({
+            title: "Warning",
+            description: "Could not save certificate to your account. Please try again later.",
+            variant: "destructive",
+          });
         }
+      } else {
+        console.log("User not logged in, certificate not saved to database");
       }
       
       toast({
