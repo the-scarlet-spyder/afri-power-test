@@ -18,7 +18,6 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(
       console.log("Certificate component rendering with data:", {
         userName, 
         resultsValid: results && results.topStrengths && Array.isArray(results.topStrengths),
-        resultsLength: results?.topStrengths?.length,
         date, 
         certificateId
       });
