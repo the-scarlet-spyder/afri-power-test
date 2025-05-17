@@ -88,7 +88,8 @@ const AuthGuard = ({
     hasAccessCode, 
     adminOnly, 
     isAdmin,
-    checkingAccess 
+    checkingAccess,
+    redirectPath
   });
   
   // Show loading state when authentication or access status is being checked

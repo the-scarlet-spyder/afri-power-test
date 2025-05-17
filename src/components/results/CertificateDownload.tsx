@@ -1,6 +1,11 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import Certificate from '@/components/Certificate';
+import { UserResult } from '@/models/strength';
+import { format } from 'date-fns';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface CertificateDownloadProps {
   userName: string;
@@ -9,6 +14,7 @@ interface CertificateDownloadProps {
   downloadPDF: () => void;
   handleRetake: () => void;
   certificateId: string;
+  results: UserResult;
 }
 
 const CertificateDownload: React.FC<CertificateDownloadProps> = ({ 
@@ -17,8 +23,58 @@ const CertificateDownload: React.FC<CertificateDownloadProps> = ({
   isGeneratingPDF, 
   downloadPDF, 
   handleRetake,
-  certificateId
+  certificateId,
+  results
 }) => {
+  const certificateRef = useRef<HTMLDivElement>(null);
+  
+  // Internal PDF generation that directly captures the certificate
+  const generatePDF = async () => {
+    if (!certificateRef.current) return false;
+    
+    try {
+      // Make certificate visible for capture
+      const certificate = certificateRef.current;
+      const originalDisplay = certificate.style.display;
+      certificate.style.display = 'block';
+      
+      // Capture the certificate
+      const canvas = await html2canvas(certificate, {
+        scale: 2,
+        useCORS: true,
+        logging: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const aspectRatio = canvas.height / canvas.width;
+      const imgWidth = pdfWidth;
+      const imgHeight = imgWidth * aspectRatio;
+      
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, Math.min(imgHeight, pdfHeight));
+      
+      // Save PDF
+      pdf.save(`Strength_Africa_Certificate_${userName.replace(/\s+/g, '_')}.pdf`);
+      
+      // Reset display
+      certificate.style.display = originalDisplay;
+      
+      return true;
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      return false;
+    }
+  };
+  
   return (
     <>
       <div className="bg-white p-6 rounded-lg shadow-sm mb-8 border border-muted">
@@ -47,7 +103,13 @@ const CertificateDownload: React.FC<CertificateDownloadProps> = ({
       
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <Button 
-          onClick={downloadPDF}
+          onClick={() => {
+            // Use the internal PDF generation instead of the downloadPDF prop
+            if (generatePDF()) {
+              // If successful, call the original downloadPDF which might handle state updates
+              downloadPDF();
+            }
+          }}
           disabled={isGeneratingPDF || !userName.trim()}
           className="bg-inuka-gold text-inuka-charcoal hover:bg-opacity-90"
         >
@@ -60,6 +122,17 @@ const CertificateDownload: React.FC<CertificateDownloadProps> = ({
         >
           Retake Test
         </Button>
+      </div>
+      
+      {/* Hidden certificate for PDF generation */}
+      <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '210mm', height: '297mm', overflow: 'hidden' }}>
+        <Certificate 
+          ref={certificateRef}
+          userName={userName}
+          results={results}
+          date={format(new Date(), "MMMM d, yyyy")}
+          certificateId={certificateId}
+        />
       </div>
     </>
   );

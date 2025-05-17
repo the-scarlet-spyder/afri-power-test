@@ -1,127 +1,213 @@
-
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { Skeleton } from "@/components/ui/skeleton";
+import AccessCodeVerification from '@/components/AccessCodeVerification';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { useTest } from '@/context/TestContext';
-import { useToast } from '@/components/ui/use-toast';
-import { questions } from '@/data/strengths';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Slider } from '@/components/ui/slider';
+import { Card, CardContent } from '@/components/ui/card';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/use-toast';
+import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 const Test = () => {
-  const { currentQuestionIndex, addResponse, calculateResults, getCurrentCategory } = useTest();
-  const [selectedValue, setSelectedValue] = useState<number>(3);
-  const { toast } = useToast();
+  const [checkingCode, setCheckingCode] = useState(true);
+  const [hasValidCode, setHasValidCode] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { 
+    currentQuestion,
+    totalQuestions,
+    currentQuestionIndex,
+    selectedAnswer,
+    setSelectedAnswer,
+    goToNextQuestion,
+    goToPreviousQuestion,
+    completeTest,
+    isTestComplete,
+    isLoading,
+    error
+  } = useTest();
   
-  const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
-  const currentCategory = getCurrentCategory();
+  useEffect(() => {
+    const checkAccessCode = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase.rpc('has_valid_access_code', {
+          _user_id: user.id
+        });
+        
+        if (error) {
+          console.error('Error checking access code:', error);
+          setHasValidCode(false);
+        } else {
+          setHasValidCode(data);
+          
+          // If user doesn't have a valid code, redirect to access code page
+          if (!data) {
+            navigate('/access-code');
+          }
+        }
+      } catch (err) {
+        console.error('Error checking access code:', err);
+        setHasValidCode(false);
+      } finally {
+        setCheckingCode(false);
+      }
+    };
+    
+    checkAccessCode();
+  }, [user, navigate]);
   
-  const handleNext = () => {
-    addResponse({
-      questionId: currentQuestion.id,
-      score: selectedValue
-    });
-    
-    setSelectedValue(3); // Reset to neutral for next question
-    
-    if (currentQuestionIndex >= questions.length - 1) {
-      // Test is complete
-      calculateResults();
+  // Show loading while checking access code
+  if (checkingCode) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
+        <Skeleton className="h-12 w-full max-w-md mb-4" />
+        <Skeleton className="h-8 w-3/4 max-w-md mb-4" />
+        <Skeleton className="h-64 w-full max-w-md" />
+      </div>
+    );
+  }
+  
+  // If no valid code, show access code verification
+  if (!hasValidCode) {
+    return <AccessCodeVerification />;
+  }
+
+  const handleSubmit = () => {
+    if (currentQuestionIndex === totalQuestions - 1) {
+      completeTest();
       navigate('/results');
+    } else {
+      goToNextQuestion();
     }
   };
 
-  const getCategoryStyles = () => {
-    switch(currentCategory) {
-      case "Thinking & Learning":
-        return { badgeClass: "strength-badge-thinking", progressClass: "bg-strength-blue" };
-      case "Interpersonal":
-        return { badgeClass: "strength-badge-interpersonal", progressClass: "bg-strength-yellow" };
-      case "Leadership & Influence":
-        return { badgeClass: "strength-badge-leadership", progressClass: "bg-strength-red" };
-      case "Execution & Discipline":
-        return { badgeClass: "strength-badge-execution", progressClass: "bg-strength-green" };
-      case "Identity, Purpose & Values":
-        return { badgeClass: "strength-badge-identity", progressClass: "bg-strength-purple" };
-      default:
-        return { badgeClass: "", progressClass: "bg-primary" };
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F9F9F9]">
+        <div className="text-center p-8 bg-white rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-inuka-crimson mb-4">Loading Test...</h2>
+          <p className="text-gray-600">Please wait while we prepare your assessment.</p>
+        </div>
+      </div>
+    );
+  }
 
-  const { badgeClass, progressClass } = getCategoryStyles();
-  
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F9F9F9]">
+        <div className="text-center p-8 bg-white rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
+          <p className="text-gray-600 mb-4">There was a problem loading the test. Please try again later.</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isTestComplete) {
+    navigate('/results');
+    return null;
+  }
+
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F9F9F9]">
+        <div className="text-center p-8 bg-white rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-inuka-crimson mb-4">No Questions Available</h2>
+          <p className="text-gray-600">There are no questions available at this time.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#F9F9F9] font-inter">
+    <div className="min-h-screen flex flex-col bg-[#F9F9F9]">
       <Navbar />
       
       <main className="flex-grow py-12">
-        <div className="inuka-container">
+        <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
-            <Card className="shadow-lg border-none">
-              <CardHeader className="bg-gradient-to-r from-inuka-crimson to-[#a52323] text-white rounded-t-lg">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-2xl font-poppins">
-                    Strength Africa Assessment
-                  </CardTitle>
-                  <Badge className="bg-white text-inuka-crimson hover:bg-inuka-offwhite">
-                    Question {currentQuestionIndex + 1} of {questions.length}
-                  </Badge>
-                </div>
-                <p className="text-sm opacity-90 mt-2 font-inter">
-                  Discover your unique strengths to unlock your full potential
-                </p>
-              </CardHeader>
-              
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-500">
+                  Question {currentQuestionIndex + 1} of {totalQuestions}
+                </span>
+                <span className="text-sm font-medium text-gray-500">
+                  {Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100)}% Complete
+                </span>
+              </div>
+              <Progress value={((currentQuestionIndex + 1) / totalQuestions) * 100} className="h-2" />
+            </div>
+            
+            <Card className="mb-8 shadow-sm">
               <CardContent className="pt-6">
-                <div className="mb-6">
-                  <div className="flex justify-between text-sm mb-1">
-                    <Badge variant="outline" className={badgeClass}>
-                      {currentCategory}
-                    </Badge>
-                    <span>{Math.round(progress)}%</span>
-                  </div>
-                  <Progress value={progress} className="h-2 bg-gray-200" indicatorClassName={progressClass} />
-                </div>
+                <h2 className="text-xl font-semibold mb-6 text-inuka-charcoal">
+                  {currentQuestion.text}
+                </h2>
                 
-                <div className="mb-8 pt-2">
-                  <h2 className="text-xl font-medium mb-10 text-inuka-charcoal text-center font-poppins">
-                    {currentQuestion.text}
-                  </h2>
-                  
-                  <div className="space-y-10 px-4 py-4">
-                    <Slider 
-                      defaultValue={[3]} 
-                      max={5} 
-                      min={1} 
-                      step={1} 
-                      value={[selectedValue]}
-                      onValueChange={(value) => setSelectedValue(value[0])} 
-                      className="mt-8"
-                    />
-                    
-                    <div className="flex justify-between text-sm font-medium text-inuka-charcoal">
-                      <span>Totally disagree</span>
-                      <span>Totally agree</span>
+                <RadioGroup 
+                  value={selectedAnswer?.toString() || ""} 
+                  onValueChange={(value) => setSelectedAnswer(parseInt(value))}
+                  className="space-y-4"
+                >
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <div key={value} className="flex items-center space-x-2 rounded-md border p-3 hover:bg-muted/50 transition-colors">
+                      <RadioGroupItem value={value.toString()} id={`option-${value}`} />
+                      <Label htmlFor={`option-${value}`} className="flex-grow cursor-pointer">
+                        {value === 1 && "Strongly Disagree"}
+                        {value === 2 && "Disagree"}
+                        {value === 3 && "Neutral"}
+                        {value === 4 && "Agree"}
+                        {value === 5 && "Strongly Agree"}
+                      </Label>
+                      {selectedAnswer === value && (
+                        <CheckCircle2 className="h-5 w-5 text-inuka-crimson" />
+                      )}
                     </div>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end">
-                  <Button 
-                    onClick={handleNext} 
-                    className="bg-inuka-crimson hover:bg-opacity-90 px-8 py-6 text-base"
-                  >
-                    {currentQuestionIndex >= questions.length - 1 ? "Submit" : "Next"}
-                  </Button>
-                </div>
+                  ))}
+                </RadioGroup>
               </CardContent>
             </Card>
+            
+            <div className="flex justify-between">
+              <Button
+                onClick={goToPreviousQuestion}
+                disabled={currentQuestionIndex === 0}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              
+              <Button
+                onClick={handleSubmit}
+                disabled={selectedAnswer === null}
+                className="bg-inuka-crimson hover:bg-inuka-crimson/90 text-white flex items-center gap-2"
+              >
+                {currentQuestionIndex === totalQuestions - 1 ? (
+                  <>
+                    Complete Test
+                    <CheckCircle2 className="h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    Next
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </main>
