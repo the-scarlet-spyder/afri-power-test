@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react';
+
+import React, { forwardRef, useEffect } from 'react';
 import Logo from './Logo';
 import { UserResult } from '@/models/strength';
 
@@ -11,6 +12,23 @@ interface CertificateProps {
 
 const Certificate = forwardRef<HTMLDivElement, CertificateProps>(
   ({ userName, results, date, certificateId }, ref) => {
+    
+    useEffect(() => {
+      // Log when certificate renders to help with debugging
+      console.log("Certificate component rendering with data:", {
+        userName, 
+        resultsValid: results && results.topStrengths && Array.isArray(results.topStrengths),
+        date, 
+        certificateId
+      });
+    }, [userName, results, date, certificateId]);
+    
+    // Validate the results data structure
+    const hasValidResults = results && 
+                          results.topStrengths && 
+                          Array.isArray(results.topStrengths) && 
+                          results.topStrengths.length > 0;
+    
     // Get category display name for styling
     const getCategoryBadgeClass = (category: string): string => {
       switch (category) {
@@ -78,29 +96,35 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(
           </h2>
           
           <div className="space-y-5">
-            {results.topStrengths.map((item, index) => (
-              <div key={item.strength.id} className="flex items-start">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center mr-4 mt-1" 
-                  style={{ backgroundColor: getCategoryBadgeClass(item.strength.category).includes('blue') ? '#3B82F6' 
-                           : getCategoryBadgeClass(item.strength.category).includes('yellow') ? '#FACC15'
-                           : getCategoryBadgeClass(item.strength.category).includes('red') ? '#EF4444' 
-                           : getCategoryBadgeClass(item.strength.category).includes('green') ? '#22C55E'
-                           : '#8B5CF6' }}>
-                  <span className="text-white font-bold">{index + 1}</span>
+            {hasValidResults ? (
+              results.topStrengths.map((item, index) => (
+                <div key={item.strength.id || index} className="flex items-start">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center mr-4 mt-1" 
+                    style={{ backgroundColor: getCategoryBadgeClass(item.strength.category).includes('blue') ? '#3B82F6' 
+                             : getCategoryBadgeClass(item.strength.category).includes('yellow') ? '#FACC15'
+                             : getCategoryBadgeClass(item.strength.category).includes('red') ? '#EF4444' 
+                             : getCategoryBadgeClass(item.strength.category).includes('green') ? '#22C55E'
+                             : '#8B5CF6' }}>
+                    <span className="text-white font-bold">{index + 1}</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className={`text-xl font-bold font-poppins ${getCategoryTextClass(item.strength.category)}`}>
+                      {item.strength.name}
+                    </h3>
+                    <p className="text-gray-700 font-inter">
+                      {item.strength.tagline}
+                    </p>
+                  </div>
+                  <div className="text-2xl font-bold text-inuka-gold">
+                    {item.score.toFixed(1)}
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className={`text-xl font-bold font-poppins ${getCategoryTextClass(item.strength.category)}`}>
-                    {item.strength.name}
-                  </h3>
-                  <p className="text-gray-700 font-inter">
-                    {item.strength.tagline}
-                  </p>
-                </div>
-                <div className="text-2xl font-bold text-inuka-gold">
-                  {item.score.toFixed(1)}
-                </div>
+              ))
+            ) : (
+              <div className="text-center py-4 text-gray-500">
+                <p>No strength data available</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       

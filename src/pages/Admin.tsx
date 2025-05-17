@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -69,8 +69,9 @@ const Admin = () => {
   const { user } = useAuth();
   
   // Create an invisible div to render certificates for PDF generation
-  const certificateRef = React.useRef<HTMLDivElement>(null);
+  const certificateRef = useRef<HTMLDivElement>(null);
   const [currentCertData, setCurrentCertData] = useState<any>(null);
+  const [certRenderError, setCertRenderError] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if user is loaded yet
@@ -256,12 +257,16 @@ const Admin = () => {
 
   const downloadCertificateAsPDF = async (certificateId: string) => {
     setGeneratingPdf(prev => ({ ...prev, [certificateId]: true }));
+    setCertRenderError(null);
     
     try {
+      console.log("Generating PDF for certificate:", certificateId);
       const certData = await generateCertificatePDFData(certificateId);
       if (!certData) {
         throw new Error('Failed to get certificate data');
       }
+      
+      console.log("Certificate data received:", certData);
       
       // Set current certificate data to render in the hidden div
       setCurrentCertData({
@@ -271,17 +276,22 @@ const Admin = () => {
         certificateId: certData.certificate.certificate_id
       });
       
-      // Give time for the component to render
+      // Give more time for the component to render
       setTimeout(async () => {
         if (certificateRef.current) {
           try {
+            console.log("Certificate DOM element found, generating canvas");
+            
             // Generate canvas from the rendered certificate
             const canvas = await html2canvas(certificateRef.current, {
               scale: 2, // Higher resolution
-              logging: false,
+              logging: true, // Enable logging for debugging
               useCORS: true,
               allowTaint: true,
+              ignoreElements: (element) => element.tagName === 'IFRAME'
             });
+            
+            console.log("Canvas generated successfully");
             
             // Create PDF
             const pdf = new jsPDF({
@@ -302,22 +312,30 @@ const Admin = () => {
             });
           } catch (pdfError) {
             console.error('Error generating PDF:', pdfError);
+            setCertRenderError(`PDF generation error: ${pdfError.message}`);
+            toast({
+              title: "Download Failed",
+              description: `PDF generation error: ${pdfError.message}`,
+              variant: "destructive",
+            });
             throw pdfError;
           }
+        } else {
+          throw new Error('Certificate element not found in the DOM');
         }
-      }, 500);
+      }, 1000); // Increased timeout to 1000ms
     } catch (error) {
       console.error('Error downloading certificate:', error);
+      setCertRenderError(`${error.message}`);
       toast({
         title: "Download Failed",
-        description: "There was an issue generating the certificate PDF.",
+        description: `There was an issue generating the certificate PDF: ${error.message}`,
         variant: "destructive",
       });
     } finally {
       setTimeout(() => {
         setGeneratingPdf(prev => ({ ...prev, [certificateId]: false }));
-        setCurrentCertData(null);
-      }, 1000);
+      }, 1500);
     }
   };
 
@@ -525,8 +543,17 @@ const Admin = () => {
         </Tabs>
       </main>
       
-      {/* Hidden certificate for PDF generation */}
-      <div className="hidden">
+      {/* Hidden certificate for PDF generation - using visibility hidden instead of display none */}
+      <div style={{ 
+        position: 'absolute', 
+        left: '-9999px', 
+        top: 0, 
+        visibility: 'hidden',
+        width: '210mm', // A4 width
+        height: '297mm', // A4 height
+        backgroundColor: 'white',
+        overflow: 'hidden'
+      }}>
         {currentCertData && (
           <div ref={certificateRef}>
             <Certificate 
@@ -538,6 +565,12 @@ const Admin = () => {
           </div>
         )}
       </div>
+      
+      {certRenderError && (
+        <div className="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <p className="text-sm">Rendering error: {certRenderError}</p>
+        </div>
+      )}
       
       <Footer />
     </div>

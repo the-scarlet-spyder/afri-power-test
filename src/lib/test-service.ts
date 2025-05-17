@@ -235,7 +235,7 @@ export const generateCertificatePDFData = async (certificateId: string) => {
 
     if (error) {
       console.error('Error fetching certificate data for PDF:', error);
-      throw error;
+      throw new Error(`Error fetching certificate: ${error.message}`);
     }
 
     if (!data) {
@@ -243,12 +243,29 @@ export const generateCertificatePDFData = async (certificateId: string) => {
       throw new Error('Certificate not found');
     }
     
-    console.log("PDF data generated successfully");
-    return {
-      certificate: data,
-      testResult: data.test_results,
-      results: JSON.parse(data.test_results.results).results,
-    };
+    if (!data.test_results || !data.test_results.results) {
+      console.error('Test results missing for certificate:', certificateId);
+      throw new Error('Test results missing for this certificate');
+    }
+    
+    try {
+      const parsedResults = JSON.parse(data.test_results.results);
+      
+      if (!parsedResults.results || !parsedResults.results.topStrengths) {
+        console.error('Invalid results structure in certificate data:', parsedResults);
+        throw new Error('Invalid strength data structure');
+      }
+      
+      console.log("PDF data generated successfully");
+      return {
+        certificate: data,
+        testResult: data.test_results,
+        results: parsedResults.results,
+      };
+    } catch (parseError) {
+      console.error('Error parsing results JSON:', parseError, data.test_results.results);
+      throw new Error('Error parsing certificate data');
+    }
   } catch (error) {
     console.error('Error generating certificate PDF data:', error);
     throw error;
