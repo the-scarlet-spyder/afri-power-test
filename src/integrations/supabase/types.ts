@@ -139,6 +139,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_access_code: {
+        Args: { _code: string; _created_by: string; _batch_name: string }
+        Returns: undefined
+      }
+      delete_access_code: {
+        Args: { _code_id: string }
+        Returns: undefined
+      }
+      generate_access_codes: {
+        Args: { _codes: string[]; _created_by: string; _batch_name: string }
+        Returns: undefined
+      }
       has_role: {
         Args: { _user_id: string; _role: string }
         Returns: boolean
