@@ -19,6 +19,8 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import VerifyCertificate from "./pages/VerifyCertificate";
 import Admin from "./pages/Admin";
+import AccessCodePage from "./pages/AccessCodePage";
+import AdminCodesPage from "./pages/AdminCodesPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,13 +51,18 @@ const App = () => (
                   <Login />
                 </AuthGuard>
               } />
+              <Route path="/access-code" element={
+                <AuthGuard>
+                  <AccessCodePage />
+                </AuthGuard>
+              } />
               <Route path="/welcome" element={
                 <AuthGuard>
                   <Welcome />
                 </AuthGuard>
               } />
               <Route path="/test" element={
-                <AuthGuard>
+                <AuthGuard requireCode={true}>
                   <Test />
                 </AuthGuard>
               } />
@@ -70,8 +77,13 @@ const App = () => (
                 </AuthGuard>
               } />
               <Route path="/admin" element={
-                <AuthGuard>
+                <AuthGuard adminOnly={true}>
                   <Admin />
+                </AuthGuard>
+              } />
+              <Route path="/admin/codes" element={
+                <AuthGuard adminOnly={true}>
+                  <AdminCodesPage />
                 </AuthGuard>
               } />
               <Route path="/certificate/:certificateId" element={<VerifyCertificate />} />
