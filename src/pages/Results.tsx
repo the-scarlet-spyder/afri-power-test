@@ -5,17 +5,25 @@ import { useTest } from '@/context/TestContext';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import Certificate from '@/components/Certificate';
 import { format } from 'date-fns';
 import { saveCertificate } from '@/lib/test-service';
+
+// Import new components
+import ResultsTopStrengths from '@/components/results/ResultsTopStrengths';
+import ResultsByCategory from '@/components/results/ResultsByCategory';
+import NextSteps from '@/components/results/NextSteps';
+import CertificateDownload from '@/components/results/CertificateDownload';
+
+// Import utility functions
+import { 
+  getCategoryCardClass, 
+  getCategoryBadgeClass, 
+  getCategoryColor 
+} from '@/utils/styleUtils';
+import { generateCertificatePDF } from '@/utils/certificatePDFGenerator';
 
 const Results = () => {
   const { results, categoryResults, resetTest, getCategoryName, testHistory } = useTest();
@@ -78,152 +86,87 @@ const Results = () => {
     });
     
     try {
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      // Minimalist, centered layout
-      // Background
-      pdf.setFillColor(255, 255, 255);
-      pdf.rect(0, 0, 210, 297, 'F');
-      // Border (dotted)
-      pdf.setDrawColor(220, 220, 220);
-      pdf.setLineWidth(0.5);
-      pdf.setLineDashPattern([1, 2], 0);
-      pdf.rect(8, 8, 194, 281);
-      pdf.setLineDashPattern([], 0);
-      // Header: Company name
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(13);
-      pdf.setTextColor(80, 80, 80);
-      pdf.text('Strengths Africa', 105, 25, { align: 'center' });
-      // Certificate title
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(10);
-      pdf.setTextColor(80, 80, 80);
-      pdf.text('CERTIFICATE OF STRENGTHS FOR', 105, 35, { align: 'center' });
-      // User Name
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(26);
-      pdf.setTextColor(0,0,0);
-      pdf.text(userName || 'Your Name', 105, 50, { align: 'center' });
-      // Red ribbon badge (vertical from top right)
-      const ribbonX = 160;
-      const ribbonY = 0;
-      const ribbonWidth = 40;
-      const ribbonHeight = 50;
-      pdf.setFillColor(201, 42, 42);
-      pdf.setDrawColor(201, 42, 42);
-      // Main ribbon rectangle
-      pdf.rect(ribbonX, ribbonY, ribbonWidth, ribbonHeight, 'F');
-      // Chevron/triangle tail
-      pdf.triangle(
-        ribbonX, ribbonY + ribbonHeight,
-        ribbonX + ribbonWidth / 2, ribbonY + ribbonHeight + 12,
-        ribbonX + ribbonWidth, ribbonY + ribbonHeight,
-        'F'
-      );
-      // Badge text inside ribbon
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(11);
-      pdf.setTextColor(255,255,255);
-      pdf.text('STRENGTHS', ribbonX + ribbonWidth / 2, ribbonY + 17, { align: 'center' });
-      pdf.text('CERTIFICATE', ribbonX + ribbonWidth / 2, ribbonY + 27, { align: 'center' });
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(9);
-      pdf.text(`Test Date: ${format(new Date(), "MMM d, yyyy")}`, ribbonX + ribbonWidth / 2, ribbonY + 39, { align: 'center' });
-      // Traits section
-      let y = 65;
-      results.topStrengths.forEach((item, idx) => {
-        // Category color bar
-        const color = getCategoryColor(item.strength.category);
-        const rgb = [
-          parseInt(color.slice(1, 3), 16),
-          parseInt(color.slice(3, 5), 16),
-          parseInt(color.slice(5, 7), 16)
-        ];
-        pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
-        pdf.rect(30, y, 3, 22, 'F');
-        // Trait name
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(15);
-        pdf.setTextColor(0,0,0);
-        pdf.text(item.strength.name, 38, y + 7);
-        // Trait description (full report paragraph)
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(11);
-        pdf.setTextColor(80, 80, 80);
-        const lines = pdf.splitTextToSize(item.strength.description, 140);
-        pdf.text(lines, 38, y + 14);
-        y += 28 + (lines.length-1)*6;
-      });
-      // Footer
-      pdf.setFontSize(10);
-      pdf.setTextColor(128, 128, 128);
-      pdf.text(`Participated on: ${format(new Date(), "M/d/yyyy")}`, 105, 272, { align: 'center' });
-      pdf.text('Copyright © Strengths Africa. All rights reserved.', 105, 280, { align: 'center' });
-      // Save
-      pdf.save(`Strength_Africa_Certificate_${userName.replace(/\s+/g, '_')}.pdf`);
-      
-      // Save certificate to Supabase if user is logged in
-      if (user) {
-        try {
-          // Get the current test result ID - either from URL params or the most recent test
-          const currentTestId = testId || (testHistory && testHistory.length > 0 ? testHistory[0].id : '');
-          
-          if (currentTestId) {
-            console.log("Saving certificate with test ID:", currentTestId);
-            
-            const savedCert = await saveCertificate(
-              user.id,
-              currentTestId,
-              userName,
-              certificateId
-            );
-            
-            if (savedCert) {
-              console.log("Certificate saved successfully with ID:", savedCert.id);
-              
-              toast({
-                title: "Certificate saved",
-                description: "Your certificate has been saved to your account.",
-              });
-            } else {
-              console.error("No data returned from saveCertificate");
-            }
-          } else {
-            console.error("No test ID available to save certificate");
-            toast({
-              title: "Warning",
-              description: "Could not save certificate to your account: No test ID found.",
-              variant: "destructive",
-            });
-          }
-        } catch (error) {
-          console.error("Failed to save certificate to Supabase:", error);
+      await generateCertificatePDF(
+        userName,
+        results,
+        certificateId,
+        () => {
+          handleSaveCertificate();
           toast({
-            title: "Warning",
-            description: "Could not save certificate to your account. Please try again later.",
+            title: "Certificate Downloaded",
+            description: "Your certificate has been successfully downloaded.",
+          });
+          setIsGeneratingPDF(false);
+          if (certificateRef.current) {
+            certificateRef.current.style.display = 'none';
+          }
+        },
+        (error) => {
+          console.error("Error generating PDF:", error);
+          toast({
+            title: "Error generating certificate",
+            description: "There was a problem creating your PDF. Please try again.",
             variant: "destructive",
           });
+          setIsGeneratingPDF(false);
         }
-      } else {
-        console.log("User not logged in, certificate not saved to database");
-      }
-      
-      toast({
-        title: "Certificate Downloaded",
-        description: "Your certificate has been successfully downloaded.",
-      });
+      );
     } catch (error) {
-      console.error("Error generating PDF:", error);
+      console.error("Error in PDF generation:", error);
+      setIsGeneratingPDF(false);
       toast({
         title: "Error generating certificate",
         description: "There was a problem creating your PDF. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsGeneratingPDF(false);
-      if (certificateRef.current) {
-        certificateRef.current.style.display = 'none';
+    }
+  };
+  
+  // Function to save certificate to database
+  const handleSaveCertificate = async () => {
+    if (user) {
+      try {
+        // Get the current test result ID - either from URL params or the most recent test
+        const currentTestId = testId || (testHistory && testHistory.length > 0 ? testHistory[0].id : '');
+        
+        if (currentTestId) {
+          console.log("Saving certificate with test ID:", currentTestId);
+          
+          const savedCert = await saveCertificate(
+            user.id,
+            currentTestId,
+            userName,
+            certificateId
+          );
+          
+          if (savedCert) {
+            console.log("Certificate saved successfully with ID:", savedCert.id);
+            
+            toast({
+              title: "Certificate saved",
+              description: "Your certificate has been saved to your account.",
+            });
+          } else {
+            console.error("No data returned from saveCertificate");
+          }
+        } else {
+          console.error("No test ID available to save certificate");
+          toast({
+            title: "Warning",
+            description: "Could not save certificate to your account: No test ID found.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Failed to save certificate to Supabase:", error);
+        toast({
+          title: "Warning",
+          description: "Could not save certificate to your account. Please try again later.",
+          variant: "destructive",
+        });
       }
+    } else {
+      console.log("User not logged in, certificate not saved to database");
     }
   };
 
@@ -262,132 +205,33 @@ const Results = () => {
               </TabsList>
               
               <TabsContent value="top-strengths">
-                <div className="space-y-8">
-                  {results.topStrengths.map((item, index) => (
-                    <Card key={item.strength.id} className={`border-l-4 overflow-hidden shadow-md ${getCategoryCardClass(item.strength.category)}`}>
-                      <CardHeader className="pb-2">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-                          <div>
-                            <Badge className={`mb-2 ${getCategoryBadgeClass(item.strength.category)}`}>
-                              {getCategoryName(item.strength.category)}
-                            </Badge>
-                            <CardTitle className="text-xl font-bold font-poppins">{index + 1}. {item.strength.name}</CardTitle>
-                            <CardDescription className="text-inuka-gold font-medium mt-1 italic">"{item.strength.tagline}"</CardDescription>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="text-sm text-gray-500 mr-2">Strength Score:</span>
-                            <Progress 
-                              value={(item.score / 5) * 100} 
-                              className="w-24 h-2" 
-                            />
-                            <span className="text-sm font-medium ml-2">{item.score.toFixed(1)}</span>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-gray-700 mb-4">{item.strength.description}</p>
-                        <h4 className="font-semibold mb-2 text-inuka-crimson font-poppins">Recommendations:</h4>
-                        <ul className="list-disc pl-5 space-y-1">
-                          {item.strength.recommendations.map((rec, i) => (
-                            <li key={i} className="text-gray-700">{rec}</li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                <ResultsTopStrengths 
+                  results={results}
+                  getCategoryName={getCategoryName}
+                  getCategoryCardClass={getCategoryCardClass}
+                  getCategoryBadgeClass={getCategoryBadgeClass}
+                />
               </TabsContent>
               
               <TabsContent value="by-category">
-                {categoryResults && categoryResults.map((category, catIndex) => (
-                  <div key={category.category} className="mb-10">
-                    <h2 className="text-xl font-bold text-inuka-crimson mb-4 flex items-center font-poppins">
-                      <span className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: getCategoryColor(category.category) }}></span>
-                      {category.displayName}
-                    </h2>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {category.strengths.slice(0, 4).map((item, index) => (
-                        <Card key={item.strength.id} className={`border-l-4 shadow-sm ${getCategoryCardClass(item.strength.category)}`}>
-                          <CardHeader className="pb-2">
-                            <div className="flex justify-between items-start">
-                              <CardTitle className="text-lg font-bold font-poppins">{item.strength.name}</CardTitle>
-                              <div className="flex items-center">
-                                <Progress 
-                                  value={(item.score / 5) * 100} 
-                                  className="w-16 h-1" 
-                                />
-                                <span className="text-xs font-medium ml-1">{item.score.toFixed(1)}</span>
-                              </div>
-                            </div>
-                            <CardDescription className="text-inuka-gold text-sm font-medium mt-1 italic">"{item.strength.tagline}"</CardDescription>
-                          </CardHeader>
-                          <CardContent className="pt-2">
-                            <p className="text-sm text-gray-600">{item.strength.description}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                <ResultsByCategory 
+                  categoryResults={categoryResults} 
+                  getCategoryCardClass={getCategoryCardClass}
+                  getCategoryColor={getCategoryColor}
+                />
               </TabsContent>
             </Tabs>
             
-            <div className="bg-white p-6 rounded-lg shadow-sm mb-8 border border-muted">
-              <h3 className="text-xl font-semibold text-inuka-crimson mb-3 font-poppins">Next Steps</h3>
-              <p className="text-gray-700 mb-4">
-                Understanding your strengths is just the beginning. Here's how you can leverage this knowledge:
-              </p>
-              <ul className="list-disc pl-5 space-y-2">
-                <li className="text-gray-700">Reflect on how your strengths have contributed to past successes.</li>
-                <li className="text-gray-700">Look for opportunities to apply your strengths in new ways.</li>
-                <li className="text-gray-700">Share your strengths with colleagues and friends to enhance collaboration.</li>
-                <li className="text-gray-700">Consider how your strengths complement those around you.</li>
-                <li className="text-gray-700">Develop strategies to leverage each of your top strengths daily.</li>
-              </ul>
-            </div>
+            <NextSteps />
             
-            {/* Name input for certificate */}
-            <div className="bg-white p-6 rounded-lg shadow-sm mb-8 border border-muted">
-              <h3 className="text-xl font-semibold text-inuka-crimson mb-3 font-poppins">Download Your Certificate</h3>
-              <p className="text-gray-700 mb-4">
-                Enter your full name as you would like it to appear on your certificate.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                <input 
-                  type="text" 
-                  placeholder="Enter your full name" 
-                  value={userName} 
-                  onChange={(e) => {
-                    setUserName(e.target.value);
-                    localStorage.setItem('user_name', e.target.value);
-                  }}
-                  className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-              
-              <div className="flex items-center text-sm text-gray-600 mt-2">
-                <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>
-                Certificate ID: {certificateId}
-              </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                onClick={downloadPDF}
-                disabled={isGeneratingPDF || !userName.trim()}
-                className="bg-inuka-gold text-inuka-charcoal hover:bg-opacity-90"
-              >
-                {isGeneratingPDF ? "Generating PDF..." : "Download PDF Certificate"}
-              </Button>
-              <Button 
-                onClick={handleRetake}
-                variant="outline" 
-                className="border-inuka-crimson text-inuka-crimson hover:bg-inuka-crimson hover:text-white"
-              >
-                Retake Test
-              </Button>
-            </div>
+            <CertificateDownload 
+              userName={userName}
+              setUserName={setUserName}
+              isGeneratingPDF={isGeneratingPDF}
+              downloadPDF={downloadPDF}
+              handleRetake={handleRetake}
+              certificateId={certificateId}
+            />
           </div>
         </div>
       </main>
@@ -406,53 +250,6 @@ const Results = () => {
       <Footer />
     </div>
   );
-};
-
-// Helper functions for category styling
-const getCategoryCardClass = (category: string): string => {
-  switch (category) {
-    case "thinking-learning": return "strength-card-thinking";
-    case "interpersonal": return "strength-card-interpersonal";
-    case "leadership-influence": return "strength-card-leadership";
-    case "execution-discipline": return "strength-card-execution";
-    case "identity-purpose-values": return "strength-card-identity";
-    default: return "border-l-primary";
-  }
-};
-
-const getCategoryBadgeClass = (category: string): string => {
-  switch (category) {
-    case "thinking-learning": return "strength-badge-thinking";
-    case "interpersonal": return "strength-badge-interpersonal";
-    case "leadership-influence": return "strength-badge-leadership";
-    case "execution-discipline": return "strength-badge-execution";
-    case "identity-purpose-values": return "strength-badge-identity";
-    default: return "";
-  }
-};
-
-const getCategoryProgressClass = (category: string): string => {
-  switch (category) {
-    case "thinking-learning": return "bg-strength-blue";
-    case "interpersonal": return "bg-strength-yellow";
-    case "leadership-influence": return "bg-strength-red";
-    case "execution-discipline": return "bg-strength-green";
-    case "identity-purpose-values": return "bg-strength-purple";
-    default: return "bg-primary";
-  }
-};
-
-// Helper function to get color based on category
-const getCategoryColor = (category: string): string => {
-  const categoryColors: Record<string, string> = {
-    "thinking-learning": "#3B82F6", // Blue
-    "interpersonal": "#FACC15",     // Yellow
-    "leadership-influence": "#EF4444", // Red
-    "execution-discipline": "#22C55E", // Green
-    "identity-purpose-values": "#8B5CF6" // Purple
-  };
-  
-  return categoryColors[category] || "#C92A2A"; // Default to crimson
 };
 
 export default Results;
