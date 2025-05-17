@@ -8,21 +8,17 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { TestProvider } from "./context/TestContext";
 import AuthGuard from "./components/AuthGuard";
-import AccessCodeGuard from "./components/AccessCodeGuard";
 
 import Landing from "./pages/Landing";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
-import AccessCode from "./pages/AccessCode";
 import Welcome from "./pages/Welcome";
 import Test from "./pages/Test";
 import Results from "./pages/Results";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import VerifyCertificate from "./pages/VerifyCertificate";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminHome from "./pages/admin/AdminHome";
-import CodesManagement from "./pages/admin/CodesManagement";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,39 +40,28 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/signup" element={
-                <AuthGuard requireAuth={false} redirectPath="/access-code">
+                <AuthGuard requireAuth={false} redirectPath="/test">
                   <Signup />
                 </AuthGuard>
               } />
               <Route path="/login" element={
-                <AuthGuard requireAuth={false} redirectPath="/access-code">
+                <AuthGuard requireAuth={false} redirectPath="/test">
                   <Login />
-                </AuthGuard>
-              } />
-              <Route path="/access-code" element={
-                <AuthGuard>
-                  <AccessCode />
                 </AuthGuard>
               } />
               <Route path="/welcome" element={
                 <AuthGuard>
-                  <AccessCodeGuard>
-                    <Welcome />
-                  </AccessCodeGuard>
+                  <Welcome />
                 </AuthGuard>
               } />
               <Route path="/test" element={
                 <AuthGuard>
-                  <AccessCodeGuard>
-                    <Test />
-                  </AccessCodeGuard>
+                  <Test />
                 </AuthGuard>
               } />
               <Route path="/results" element={
                 <AuthGuard>
-                  <AccessCodeGuard>
-                    <Results />
-                  </AccessCodeGuard>
+                  <Results />
                 </AuthGuard>
               } />
               <Route path="/profile" element={
@@ -85,13 +70,10 @@ const App = () => (
                 </AuthGuard>
               } />
               <Route path="/admin" element={
-                <AuthGuard requireAdmin={true}>
-                  <AdminDashboard />
+                <AuthGuard>
+                  <Admin />
                 </AuthGuard>
-              }>
-                <Route index element={<AdminHome />} />
-                <Route path="codes" element={<CodesManagement />} />
-              </Route>
+              } />
               <Route path="/certificate/:certificateId" element={<VerifyCertificate />} />
               <Route path="/verify" element={<VerifyCertificate />} />
               <Route path="*" element={<NotFound />} />
