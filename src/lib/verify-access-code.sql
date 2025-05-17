@@ -6,6 +6,7 @@ CREATE OR REPLACE FUNCTION public.verify_access_code(_code character varying, _u
 AS $function$
 DECLARE
   result JSONB;
+  code_id UUID;
 BEGIN
   -- Check if user already has a valid code
   IF (SELECT public.has_valid_access_code(_user_id)) THEN
@@ -24,9 +25,9 @@ BEGIN
       used_at = NOW()
   WHERE code = _code
     AND used = false
-  RETURNING id INTO result;
+  RETURNING id INTO code_id;
   
-  IF result IS NULL THEN
+  IF code_id IS NULL THEN
     result := jsonb_build_object(
       'success', false,
       'message', 'Invalid or already used access code',
@@ -36,7 +37,7 @@ BEGIN
     result := jsonb_build_object(
       'success', true,
       'message', 'Access code verified successfully',
-      'code_id', result
+      'code_id', code_id
     );
   END IF;
   
