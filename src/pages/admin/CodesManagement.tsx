@@ -29,8 +29,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 import { generateAccessCodes, getAllAccessCodes, checkIsAdmin } from '@/lib/access-code-service';
-import { Loader2, Check, X, Copy, Download } from 'lucide-react';
-import Papa from 'papaparse';
+import { Loader2, Check, X, Copy } from 'lucide-react';
 
 interface AccessCode {
   id: string;
@@ -189,29 +188,6 @@ const CodesManagement = () => {
     });
   };
 
-  // Export codes as CSV
-  const exportCodes = () => {
-    const dataToExport = filteredCodes.map(code => ({
-      Code: code.code,
-      Status: code.used ? 'Used' : 'Unused',
-      'Assigned To': code.assigned_to?.email || '',
-      'Used At': code.used_at ? new Date(code.used_at).toLocaleString() : '',
-      'Batch Name': code.batch_name || '',
-      'Created At': new Date(code.created_at).toLocaleString()
-    }));
-    
-    const csv = Papa.unparse(dataToExport);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `access-codes-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -272,15 +248,6 @@ const CodesManagement = () => {
                       <SelectItem value="unused">Unused Codes</SelectItem>
                     </SelectContent>
                   </Select>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={exportCodes}
-                    className="whitespace-nowrap"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Export CSV
-                  </Button>
                 </div>
               </div>
               
