@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase';
 import { UserResponse, UserResult, CategoryResult } from '@/models/strength';
 import { toast } from '@/components/ui/use-toast';
@@ -145,10 +144,6 @@ export const saveCertificate = async (
 
     if (existingCert) {
       console.log("Certificate already exists for this test result:", existingCert.id);
-      toast({
-        title: "Certificate already generated",
-        description: "You've already created a certificate for this test result.",
-      });
       return existingCert;
     }
 

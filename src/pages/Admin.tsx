@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
@@ -31,6 +30,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import Certificate from '@/components/Certificate';
 import { generateCertificatePDFData } from '@/lib/test-service';
+import CertificateGenerator from '@/components/admin/CertificateGenerator';
 
 // Admin emails that are allowed to access this page
 const ADMIN_EMAILS = ['adrian.m.adepoju@gmail.com']; // Make sure your email is correctly listed here
@@ -371,9 +371,10 @@ const Admin = () => {
           onValueChange={setActiveTab}
           className="w-full"
         >
-          <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="test-results">Test Results</TabsTrigger>
             <TabsTrigger value="certificates">Certificates</TabsTrigger>
+            <TabsTrigger value="tools">Tools</TabsTrigger>
           </TabsList>
           
           <TabsContent value="test-results">
@@ -516,6 +517,10 @@ const Admin = () => {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          <TabsContent value="tools">
+            <CertificateGenerator />
           </TabsContent>
         </Tabs>
       </main>
