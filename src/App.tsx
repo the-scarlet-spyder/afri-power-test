@@ -62,7 +62,7 @@ const App = () => (
                 </AuthGuard>
               } />
               <Route path="/test" element={
-                <AuthGuard requireCode={true}>
+                <AuthGuard requireCode={true} redirectPath="/access-code">
                   <Test />
                 </AuthGuard>
               } />
@@ -77,12 +77,12 @@ const App = () => (
                 </AuthGuard>
               } />
               <Route path="/admin" element={
-                <AuthGuard adminOnly={true}>
+                <AuthGuard adminOnly={true} redirectPath="/">
                   <Admin />
                 </AuthGuard>
               } />
               <Route path="/admin/codes" element={
-                <AuthGuard adminOnly={true}>
+                <AuthGuard adminOnly={true} redirectPath="/">
                   <AdminCodesPage />
                 </AuthGuard>
               } />
