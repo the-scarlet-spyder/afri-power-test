@@ -25,6 +25,12 @@ import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import Certificate from '@/components/Certificate';
+import { generateCertificatePDFData } from '@/lib/test-service';
 
 // Admin emails that are allowed to access this page
 const ADMIN_EMAILS = ['adrian.m.adepoju@gmail.com']; // Make sure your email is correctly listed here
@@ -56,10 +62,15 @@ const Admin = () => {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('test-results');
+  const [generatingPdf, setGeneratingPdf] = useState<{[key: string]: boolean}>({});
   
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  // Create an invisible div to render certificates for PDF generation
+  const certificateRef = React.useRef<HTMLDivElement>(null);
+  const [currentCertData, setCurrentCertData] = useState<any>(null);
 
   useEffect(() => {
     // Check if user is loaded yet
@@ -243,6 +254,73 @@ const Admin = () => {
     }
   };
 
+  const downloadCertificateAsPDF = async (certificateId: string) => {
+    setGeneratingPdf(prev => ({ ...prev, [certificateId]: true }));
+    
+    try {
+      const certData = await generateCertificatePDFData(certificateId);
+      if (!certData) {
+        throw new Error('Failed to get certificate data');
+      }
+      
+      // Set current certificate data to render in the hidden div
+      setCurrentCertData({
+        userName: certData.certificate.name_on_certificate,
+        results: certData.results,
+        date: format(new Date(certData.certificate.created_at), 'MMMM d, yyyy'),
+        certificateId: certData.certificate.certificate_id
+      });
+      
+      // Give time for the component to render
+      setTimeout(async () => {
+        if (certificateRef.current) {
+          try {
+            // Generate canvas from the rendered certificate
+            const canvas = await html2canvas(certificateRef.current, {
+              scale: 2, // Higher resolution
+              logging: false,
+              useCORS: true,
+              allowTaint: true,
+            });
+            
+            // Create PDF
+            const pdf = new jsPDF({
+              orientation: 'portrait',
+              unit: 'mm',
+              format: 'a4',
+            });
+            
+            const imgData = canvas.toDataURL('image/png');
+            pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+            
+            // Download the PDF
+            pdf.save(`Strength-Certificate-${certificateId}.pdf`);
+            
+            toast({
+              title: "Certificate Downloaded",
+              description: "Certificate PDF has been generated successfully.",
+            });
+          } catch (pdfError) {
+            console.error('Error generating PDF:', pdfError);
+            throw pdfError;
+          }
+        }
+      }, 500);
+    } catch (error) {
+      console.error('Error downloading certificate:', error);
+      toast({
+        title: "Download Failed",
+        description: "There was an issue generating the certificate PDF.",
+        variant: "destructive",
+      });
+    } finally {
+      setTimeout(() => {
+        setGeneratingPdf(prev => ({ ...prev, [certificateId]: false }));
+        setCurrentCertData(null);
+      }, 1000);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'MMM d, yyyy h:mm a');
@@ -384,6 +462,7 @@ const Admin = () => {
                         <TableHead>Certificate ID</TableHead>
                         <TableHead>Created Date</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -413,6 +492,23 @@ const Admin = () => {
                               </Badge>
                             )}
                           </TableCell>
+                          <TableCell>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="flex items-center gap-1"
+                              onClick={() => downloadCertificateAsPDF(cert.certificate_id)}
+                              disabled={generatingPdf[cert.certificate_id]}
+                            >
+                              {generatingPdf[cert.certificate_id] ? 
+                                'Generating...' : 
+                                <>
+                                  <Download size={16} />
+                                  PDF
+                                </>
+                              }
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -423,6 +519,20 @@ const Admin = () => {
           </TabsContent>
         </Tabs>
       </main>
+      
+      {/* Hidden certificate for PDF generation */}
+      <div className="hidden">
+        {currentCertData && (
+          <div ref={certificateRef}>
+            <Certificate 
+              userName={currentCertData.userName}
+              results={currentCertData.results}
+              date={currentCertData.date}
+              certificateId={currentCertData.certificateId}
+            />
+          </div>
+        )}
+      </div>
       
       <Footer />
     </div>

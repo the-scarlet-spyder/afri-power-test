@@ -1,7 +1,6 @@
 
 import { supabase } from './supabase';
 import { UserResponse, UserResult, CategoryResult } from '@/models/strength';
-import { useAuth } from '@/context/AuthContext';
 
 // Save test results to Supabase
 export const saveTestResults = async (
@@ -140,6 +139,7 @@ export const saveCertificate = async (
 
 // Get all certificates for a user
 export const getUserCertificates = async (userId: string) => {
+  console.log("Fetching certificates for user ID:", userId);
   try {
     const { data, error } = await supabase
       .from('certificates')
@@ -148,10 +148,12 @@ export const getUserCertificates = async (userId: string) => {
       .order('created_at', { ascending: false });
 
     if (error) {
+      console.error("Error in getUserCertificates:", error);
       throw error;
     }
 
-    return data;
+    console.log("Certificates found:", data?.length || 0);
+    return data || [];
   } catch (error) {
     console.error('Error fetching certificates:', error);
     return [];
@@ -175,5 +177,37 @@ export const verifyCertificate = async (certificateId: string) => {
   } catch (error) {
     console.error('Error verifying certificate:', error);
     return null;
+  }
+};
+
+// Generate certificate PDF data
+export const generateCertificatePDFData = async (certificateId: string) => {
+  try {
+    // Get the certificate and associated test result data
+    const { data, error } = await supabase
+      .from('certificates')
+      .select(`
+        *,
+        test_results(*)
+      `)
+      .eq('certificate_id', certificateId)
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('Certificate not found');
+    }
+    
+    return {
+      certificate: data,
+      testResult: data.test_results,
+      results: JSON.parse(data.test_results.results).results,
+    };
+  } catch (error) {
+    console.error('Error generating certificate PDF data:', error);
+    throw error;
   }
 };

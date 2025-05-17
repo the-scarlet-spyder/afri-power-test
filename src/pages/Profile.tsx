@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTest } from '@/context/TestContext';
@@ -11,13 +11,14 @@ import { format } from 'date-fns';
 import { getUserCertificates } from '@/lib/test-service';
 import { Certificate } from '@/lib/database.types';
 import { toast } from '@/components/ui/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Profile = () => {
   const { user, logout } = useAuth();
   const { testHistory, fetchTestHistory, loadingHistory } = useTest();
   const navigate = useNavigate();
-  const [certificates, setCertificates] = React.useState<Certificate[]>([]);
-  const [loadingCertificates, setLoadingCertificates] = React.useState(false);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [loadingCertificates, setLoadingCertificates] = useState(false);
   
   useEffect(() => {
     if (user) {
@@ -30,8 +31,11 @@ const Profile = () => {
     if (!user) return;
     
     setLoadingCertificates(true);
+    console.log("Fetching certificates for user:", user.id);
+    
     try {
       const userCertificates = await getUserCertificates(user.id);
+      console.log("Certificates received:", userCertificates);
       setCertificates(userCertificates);
     } catch (error) {
       console.error("Failed to load certificates:", error);
@@ -46,8 +50,17 @@ const Profile = () => {
   };
   
   const handleLogout = async () => {
-    await logout();
-    navigate('/');
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast({
+        title: "Logout Failed",
+        description: "There was an issue logging you out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   if (!user) {
@@ -142,10 +155,11 @@ const Profile = () => {
             </h2>
             
             {loadingCertificates ? (
-              <Card className="mb-8 p-6 text-center">
-                <p>Loading your certificates...</p>
-              </Card>
-            ) : certificates.length > 0 ? (
+              <div className="space-y-3">
+                <Skeleton className="h-[100px] w-full rounded-lg" />
+                <Skeleton className="h-[100px] w-full rounded-lg" />
+              </div>
+            ) : certificates && certificates.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 {certificates.map(cert => (
                   <Card key={cert.id} className="overflow-hidden">

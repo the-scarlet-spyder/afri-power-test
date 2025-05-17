@@ -17,8 +17,10 @@ const AuthGuard = ({
 }: AuthGuardProps) => {
   const { user, isLoading } = useAuth();
   
-  // Show loading state when user is undefined (still initializing)
-  if (user === undefined || isLoading) {
+  console.log("AuthGuard state:", { user, isLoading, requireAuth });
+  
+  // Show loading state when authentication status is being checked
+  if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-4 w-full max-w-md mx-auto">
         <Skeleton className="h-12 w-full mb-4" />
@@ -30,11 +32,13 @@ const AuthGuard = ({
 
   // Logged in but needs to be logged out
   if (user && !requireAuth) {
+    console.log("User is logged in but page requires no auth, redirecting to:", redirectPath);
     return <Navigate to={redirectPath} replace />;
   }
 
   // Not logged in but needs to be logged in
   if (!user && requireAuth) {
+    console.log("User is not logged in but page requires auth, redirecting to:", redirectPath);
     return <Navigate to={redirectPath} replace />;
   }
 
