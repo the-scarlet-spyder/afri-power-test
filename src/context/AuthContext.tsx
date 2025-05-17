@@ -138,10 +138,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = async () => {
     setIsLoading(true);
     try {
+      // Use the current window origin instead of hardcoded localhost
+      const currentOrigin = window.location.origin;
+      console.log("Redirecting Google auth to:", currentOrigin);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: currentOrigin,
         },
       });
       
@@ -159,7 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     setIsLoading(true);
     try {
-      // Fix: Using proper async/await pattern and ensuring proper state updates
+      console.log("Starting logout process...");
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -168,7 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       console.log("Logout successful");
-      // Make sure we set the user to null immediately
+      // Force user to null immediately
       setUser(null);
     } catch (error: any) {
       console.error("Logout error:", error.message);

@@ -12,6 +12,7 @@ import { getUserCertificates } from '@/lib/test-service';
 import { Certificate } from '@/lib/database.types';
 import { toast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { LogOut, User } from 'lucide-react';
 
 const Profile = () => {
   const { user, logout } = useAuth();
@@ -51,8 +52,22 @@ const Profile = () => {
   
   const handleLogout = async () => {
     try {
+      console.log("Logout button clicked");
+      // Show toast before logout to indicate process has started
+      toast({
+        title: "Logging out...",
+        description: "Please wait while we log you out.",
+      });
+      
       await logout();
-      navigate('/');
+      
+      // Force navigation to home page after logout
+      navigate('/', { replace: true });
+      
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
     } catch (error) {
       console.error("Logout failed:", error);
       toast({
@@ -212,8 +227,9 @@ const Profile = () => {
               <Button 
                 onClick={handleLogout}
                 variant="outline" 
-                className="border-inuka-crimson text-inuka-crimson hover:bg-inuka-crimson hover:text-white"
+                className="border-inuka-crimson text-inuka-crimson hover:bg-inuka-crimson hover:text-white flex items-center gap-2"
               >
+                <LogOut size={16} />
                 Log Out
               </Button>
             </div>

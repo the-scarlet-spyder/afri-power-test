@@ -1,6 +1,7 @@
 
 import { supabase } from './supabase';
 import { UserResponse, UserResult, CategoryResult } from '@/models/strength';
+import { toast } from '@/components/ui/use-toast';
 
 // Save test results to Supabase
 export const saveTestResults = async (
@@ -9,6 +10,7 @@ export const saveTestResults = async (
   results: UserResult,
   categoryResults: CategoryResult[]
 ) => {
+  console.log("Saving test results for user:", userId);
   try {
     const { data, error } = await supabase
       .from('test_results')
@@ -25,9 +27,11 @@ export const saveTestResults = async (
       .single();
 
     if (error) {
+      console.error('Error saving test results:', error);
       throw error;
     }
 
+    console.log("Test results saved successfully, ID:", data?.id);
     return data;
   } catch (error) {
     console.error('Error saving test results:', error);
@@ -41,6 +45,7 @@ export const saveTestResults = async (
 
 // Get latest test results for a user
 export const getLatestTestResult = async (userId: string) => {
+  console.log("Fetching latest test result for user:", userId);
   try {
     const { data, error } = await supabase
       .from('test_results')
@@ -51,9 +56,11 @@ export const getLatestTestResult = async (userId: string) => {
       .single();
 
     if (error) {
+      console.error('Error fetching test results:', error);
       throw error;
     }
 
+    console.log("Latest test result found:", !!data);
     return data ? {
       responses: JSON.parse(data.responses),
       results: JSON.parse(data.results).results,
@@ -82,6 +89,7 @@ export const getLatestTestResult = async (userId: string) => {
 
 // Get all test results for a user
 export const getAllTestResults = async (userId: string) => {
+  console.log("Fetching all test results for user:", userId);
   try {
     const { data, error } = await supabase
       .from('test_results')
@@ -90,9 +98,11 @@ export const getAllTestResults = async (userId: string) => {
       .order('created_at', { ascending: false });
 
     if (error) {
+      console.error('Error fetching all test results:', error);
       throw error;
     }
 
+    console.log(`Found ${data?.length || 0} test results for user: ${userId}`);
     return data.map(item => ({
       id: item.id,
       responses: JSON.parse(item.responses),
@@ -113,7 +123,36 @@ export const saveCertificate = async (
   nameOnCertificate: string,
   certificateId: string
 ) => {
+  console.log("Saving certificate:", {
+    userId,
+    testResultId,
+    nameOnCertificate,
+    certificateId
+  });
+  
   try {
+    // Check if this certificate already exists to avoid duplicates
+    const { data: existingCert, error: checkError } = await supabase
+      .from('certificates')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('test_result_id', testResultId)
+      .single();
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('Error checking for existing certificate:', checkError);
+    }
+
+    if (existingCert) {
+      console.log("Certificate already exists for this test result:", existingCert.id);
+      toast({
+        title: "Certificate already generated",
+        description: "You've already created a certificate for this test result.",
+      });
+      return existingCert;
+    }
+
+    // Insert the new certificate
     const { data, error } = await supabase
       .from('certificates')
       .insert({
@@ -127,9 +166,11 @@ export const saveCertificate = async (
       .single();
 
     if (error) {
+      console.error('Error saving certificate:', error);
       throw error;
     }
 
+    console.log("Certificate saved successfully:", data);
     return data;
   } catch (error) {
     console.error('Error saving certificate:', error);
@@ -162,6 +203,7 @@ export const getUserCertificates = async (userId: string) => {
 
 // Verify a certificate by ID
 export const verifyCertificate = async (certificateId: string) => {
+  console.log("Verifying certificate:", certificateId);
   try {
     const { data, error } = await supabase
       .from('certificates')
@@ -170,9 +212,11 @@ export const verifyCertificate = async (certificateId: string) => {
       .single();
 
     if (error) {
+      console.error('Error verifying certificate:', error);
       throw error;
     }
 
+    console.log("Certificate verification result:", !!data);
     return data;
   } catch (error) {
     console.error('Error verifying certificate:', error);
@@ -182,6 +226,7 @@ export const verifyCertificate = async (certificateId: string) => {
 
 // Generate certificate PDF data
 export const generateCertificatePDFData = async (certificateId: string) => {
+  console.log("Generating PDF data for certificate:", certificateId);
   try {
     // Get the certificate and associated test result data
     const { data, error } = await supabase
@@ -194,13 +239,16 @@ export const generateCertificatePDFData = async (certificateId: string) => {
       .single();
 
     if (error) {
+      console.error('Error fetching certificate data for PDF:', error);
       throw error;
     }
 
     if (!data) {
+      console.error('Certificate not found:', certificateId);
       throw new Error('Certificate not found');
     }
     
+    console.log("PDF data generated successfully");
     return {
       certificate: data,
       testResult: data.test_results,

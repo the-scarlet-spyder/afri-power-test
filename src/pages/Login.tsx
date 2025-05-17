@@ -97,14 +97,14 @@ const Login = () => {
             </div>
             
             <div className="flex justify-end">
-              <a href="#" className="text-sm text-inuka-terracotta hover:underline">
+              <a href="#" className="text-sm text-inuka-crimson hover:underline">
                 Forgot password?
               </a>
             </div>
             
             <Button 
               type="submit" 
-              className="w-full bg-inuka-terracotta hover:bg-opacity-90"
+              className="w-full bg-inuka-crimson hover:bg-opacity-90"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Logging In..." : "Log In"}
@@ -113,7 +113,7 @@ const Login = () => {
           
           <p className="mt-6 text-center text-sm text-gray-600">
             Don't have an account?{" "}
-            <Link to="/signup" className="text-inuka-terracotta hover:underline">
+            <Link to="/signup" className="text-inuka-crimson hover:underline">
               Sign up
             </Link>
           </p>
