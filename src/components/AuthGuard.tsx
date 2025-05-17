@@ -53,6 +53,13 @@ const AuthGuard = ({
       
       // Check admin status if required
       if (adminOnly) {
+        // Temporary solution since we're using a hardcoded admin list
+        const ADMIN_EMAILS = ['adrian.m.adepoju@gmail.com']; // Make sure this matches the one in Navbar.tsx
+        const isUserAdmin = user && ADMIN_EMAILS.includes(user.email);
+        setIsAdmin(isUserAdmin);
+        
+        // Future implementation that would use RPC:
+        /*
         try {
           const { data, error } = await supabase.rpc('is_admin', {
             user_id: user.id
@@ -68,6 +75,7 @@ const AuthGuard = ({
           console.error('Error checking admin status:', err);
           setIsAdmin(false);
         }
+        */
       }
       
       setCheckingAccess(false);

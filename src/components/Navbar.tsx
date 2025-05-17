@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 
 // Admin emails that can see the admin link
-const ADMIN_EMAILS = ['adrian.m.adepoju@gmail.com']; // Make sure this matches the one in Admin.tsx
+const ADMIN_EMAILS = ['adrian.m.adepoju@gmail.com']; // Make sure this matches the one in AuthGuard.tsx
 
 const Navbar = () => {
   const { user } = useAuth();
