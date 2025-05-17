@@ -1,79 +1,87 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+ 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 240 10% 7%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 7%;
-
+    --background: 0 0% 100%;
+    --foreground: 222.2 47.4% 11.2%;
+ 
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+ 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 7%;
-
-    --primary: 0 68% 48%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 39 100% 50%;
-    --secondary-foreground: 240 10% 7%;
-
-    --muted: 240 5% 90%;
-    --muted-foreground: 240 5% 45%;
-
-    --accent: 39 100% 50%;
-    --accent-foreground: 240 10% 7%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 240 5% 84%;
-    --input: 240 5% 84%;
-    --ring: 0 68% 48%;
-
+    --popover-foreground: 222.2 47.4% 11.2%;
+ 
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+ 
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+ 
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+ 
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+ 
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+ 
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 210 40% 98%;
+ 
+    --ring: 215 20.2% 65.1%;
+ 
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-    
-    /* Custom Inuka colors */
-    --inuka-crimson: 0 68% 48%;
-    --inuka-gold: 39 100% 50%;
-    --inuka-charcoal: 0 0% 7%;
-    --inuka-offwhite: 0 0% 98%;
-    
-    /* Strength category colors */
-    --strength-blue: 210 100% 60%;
-    --strength-yellow: 45 100% 60%;
-    --strength-red: 0 85% 55%;
-    --strength-green: 120 50% 50%;
-    --strength-purple: 270 65% 60%;
   }
-  
+ 
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+ 
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+ 
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+ 
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
+ 
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+ 
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
+ 
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 1.2%;
+ 
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+ 
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+ 
+    --ring: 216 34% 17%;
+ 
+    --radius: 0.5rem;
+  }
+}
+ 
+@layer base {
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground font-inter;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-poppins font-bold;
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-/* Animations */
-@keyframes fade-in {
+@keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(10px);
@@ -82,125 +90,4 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-@keyframes scale-in {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.5s ease-out forwards;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.3s ease-out forwards;
-}
-
-.hover-scale {
-  transition: transform 0.2s ease;
-}
-
-.hover-scale:hover {
-  transform: scale(1.05);
-}
-
-.inuka-button {
-  @apply bg-inuka-crimson hover:bg-opacity-90 text-white font-semibold py-3 px-6 rounded-md transition-all duration-300 inline-block shadow-md hover:translate-y-[-2px] active:translate-y-[1px];
-}
-
-.inuka-container {
-  @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
-}
-
-.inuka-section {
-  @apply py-12 sm:py-16;
-}
-
-.inuka-heading {
-  @apply text-3xl sm:text-4xl lg:text-5xl font-bold text-inuka-crimson mb-6 font-poppins;
-}
-
-.inuka-subheading {
-  @apply text-xl sm:text-2xl text-inuka-gold font-medium mb-4 font-poppins;
-}
-
-.inuka-paragraph {
-  @apply text-base text-gray-700 leading-relaxed mb-6 font-inter;
-}
-
-/* Strength category styles */
-.strength-card-thinking {
-  @apply border-l-strength-blue;
-}
-
-.strength-card-interpersonal {
-  @apply border-l-strength-yellow;
-}
-
-.strength-card-leadership {
-  @apply border-l-strength-red;
-}
-
-.strength-card-execution {
-  @apply border-l-strength-green;
-}
-
-.strength-card-identity {
-  @apply border-l-strength-purple;
-}
-
-.strength-badge-thinking {
-  @apply bg-strength-blue/20 text-strength-blue;
-}
-
-.strength-badge-interpersonal {
-  @apply bg-strength-yellow/20 text-amber-700;
-}
-
-.strength-badge-leadership {
-  @apply bg-strength-red/20 text-strength-red;
-}
-
-.strength-badge-execution {
-  @apply bg-strength-green/20 text-strength-green;
-}
-
-.strength-badge-identity {
-  @apply bg-strength-purple/20 text-strength-purple;
-}
-
-.slider-thumb {
-  @apply absolute h-9 w-9 rounded-full bg-white border-4 border-secondary shadow-lg top-1/2 -translate-y-1/2 -translate-x-1/2 cursor-pointer;
-}
-
-/* Strength sample tags */
-.strength-tag {
-  @apply rounded-full px-4 py-1 text-sm font-medium inline-flex items-center;
-}
-
-.strength-tag-visionary {
-  @apply bg-strength-yellow/20 text-amber-700;
-}
-
-.strength-tag-strategic {
-  @apply bg-strength-blue/20 text-strength-blue;
-}
-
-.strength-tag-resilient {
-  @apply bg-strength-red/20 text-strength-red;
-}
-
-.strength-tag-mentor {
-  @apply bg-strength-green/20 text-strength-green;
-}
-
-.strength-tag-innovator {
-  @apply bg-strength-purple/20 text-strength-purple;
 }

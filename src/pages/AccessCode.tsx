@@ -1,7 +1,5 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -82,17 +80,15 @@ const AccessCode = () => {
       setIsSubmitting(false);
     }
   };
-
+  
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
       <main className="flex-grow flex items-center justify-center py-12 px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
+        <div
+          className="w-full max-w-md opacity-0 translate-y-4 animate-[fadeIn_0.5s_ease-out_forwards]"
+          style={{ animation: 'fadeIn 0.5s ease-out forwards' }}
         >
           <Card className="border-inuka-crimson/20 shadow-lg">
             <CardHeader className="text-center space-y-2">
@@ -149,7 +145,7 @@ const AccessCode = () => {
               </p>
             </CardFooter>
           </Card>
-        </motion.div>
+        </div>
       </main>
       
       <Footer />
