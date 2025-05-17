@@ -1,6 +1,19 @@
+
 import { supabase } from './supabase';
 import { UserResponse, UserResult, CategoryResult } from '@/models/strength';
 import { toast } from '@/components/ui/use-toast';
+import { checkUserHasValidCode } from './access-code-service';
+
+// Check if user can take test (has valid access code)
+export const canUserTakeTest = async (userId: string) => {
+  try {
+    const hasValidCode = await checkUserHasValidCode(userId);
+    return hasValidCode;
+  } catch (error) {
+    console.error('Error checking test access:', error);
+    return false;
+  }
+};
 
 // Save test results to Supabase
 export const saveTestResults = async (
