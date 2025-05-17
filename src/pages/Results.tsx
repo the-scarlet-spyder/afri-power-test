@@ -13,6 +13,41 @@ import CertificateDownload from '@/components/results/CertificateDownload';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 
+// Helper functions for category styling that will be passed to child components
+const getCategoryCardClass = (category: string): string => {
+  switch (category) {
+    case "thinking-learning": return "strength-card-thinking";
+    case "interpersonal": return "strength-card-interpersonal";
+    case "leadership-influence": return "strength-card-leadership";
+    case "execution-discipline": return "strength-card-execution";
+    case "identity-purpose-values": return "strength-card-identity";
+    default: return "border-l-primary";
+  }
+};
+
+const getCategoryBadgeClass = (category: string): string => {
+  switch (category) {
+    case "thinking-learning": return "strength-badge-thinking";
+    case "interpersonal": return "strength-badge-interpersonal";
+    case "leadership-influence": return "strength-badge-leadership";
+    case "execution-discipline": return "strength-badge-execution";
+    case "identity-purpose-values": return "strength-badge-identity";
+    default: return "";
+  }
+};
+
+const getCategoryColor = (category: string): string => {
+  const categoryColors: Record<string, string> = {
+    "thinking-learning": "#3B82F6", // Blue
+    "interpersonal": "#FACC15",     // Yellow
+    "leadership-influence": "#EF4444", // Red
+    "execution-discipline": "#22C55E", // Green
+    "identity-purpose-values": "#8B5CF6" // Purple
+  };
+  
+  return categoryColors[category] || "#C92A2A"; // Default to crimson
+};
+
 const Results = () => {
   const { results, categoryResults, resetTest, getCategoryName } = useTest();
   const navigate = useNavigate();
@@ -124,12 +159,21 @@ const Results = () => {
               </TabsList>
               
               <TabsContent value="top-strengths">
-                <ResultsTopStrengths results={results} />
+                <ResultsTopStrengths 
+                  results={results} 
+                  getCategoryName={getCategoryName}
+                  getCategoryCardClass={getCategoryCardClass}
+                  getCategoryBadgeClass={getCategoryBadgeClass}
+                />
               </TabsContent>
               
               <TabsContent value="by-category">
                 {categoryResults && (
-                  <ResultsByCategory categoryResults={categoryResults} />
+                  <ResultsByCategory 
+                    categoryResults={categoryResults} 
+                    getCategoryCardClass={getCategoryCardClass}
+                    getCategoryColor={getCategoryColor}
+                  />
                 )}
               </TabsContent>
             </Tabs>

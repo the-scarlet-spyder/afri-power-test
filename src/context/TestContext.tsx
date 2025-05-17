@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserResponse, UserResult, Strength, CategoryResult, StrengthCategory } from '../models/strength';
 import { questions, strengths, getCategoryDisplayName } from '../data/strengths';
@@ -23,6 +22,17 @@ interface TestContextType {
   }[] | null;
   loadingHistory: boolean;
   fetchTestHistory: () => Promise<void>;
+  // New properties for Test.tsx
+  currentQuestion: any;
+  totalQuestions: number;
+  selectedAnswer: number | null;
+  setSelectedAnswer: (value: number) => void;
+  goToNextQuestion: () => void;
+  goToPreviousQuestion: () => void;
+  completeTest: () => void;
+  isTestComplete: boolean;
+  isLoading: boolean;
+  error: string | null;
 }
 
 const TestContext = createContext<TestContextType | undefined>(undefined);
@@ -43,6 +53,15 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [testHistory, setTestHistory] = useState<{id: string; testDate: string; results: UserResult}[] | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const { user } = useAuth();
+  // New states for Test.tsx
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [isTestComplete, setIsTestComplete] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Computed properties
+  const totalQuestions = questions.length;
+  const currentQuestion = questions[currentQuestionIndex];
 
   // Load latest test results if available
   useEffect(() => {
@@ -245,6 +264,10 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('inuka_responses');
     localStorage.removeItem('inuka_results');
     localStorage.removeItem('inuka_category_results');
+    setSelectedAnswer(null);
+    setIsTestComplete(false);
+    setIsLoading(false);
+    setError(null);
   };
 
   const getCategoryName = (category: StrengthCategory): string => {
@@ -262,6 +285,55 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return "";
   };
 
+  // New functions for Test.tsx
+  const goToNextQuestion = () => {
+    if (selectedAnswer === null) {
+      return;
+    }
+
+    // Save the current response
+    addResponse({
+      questionId: currentQuestion.id,
+      score: selectedAnswer
+    });
+
+    // Reset selected answer for next question
+    setSelectedAnswer(null);
+
+    // Check if we've reached the end
+    if (currentQuestionIndex >= questions.length - 1) {
+      completeTest();
+    }
+  };
+
+  const goToPreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      
+      // Set the previous answer
+      const previousQuestion = questions[currentQuestionIndex - 1];
+      const previousResponse = responses.find(r => r.questionId === previousQuestion.id);
+      if (previousResponse) {
+        setSelectedAnswer(previousResponse.score);
+      } else {
+        setSelectedAnswer(null);
+      }
+    }
+  };
+
+  const completeTest = async () => {
+    try {
+      setIsLoading(true);
+      await calculateResults();
+      setIsTestComplete(true);
+    } catch (err) {
+      setError("Failed to complete the test. Please try again.");
+      console.error("Test completion error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <TestContext.Provider 
       value={{ 
@@ -276,7 +348,18 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
         getCurrentCategory,
         testHistory,
         loadingHistory,
-        fetchTestHistory
+        fetchTestHistory,
+        // New properties for Test.tsx
+        currentQuestion,
+        totalQuestions,
+        selectedAnswer,
+        setSelectedAnswer,
+        goToNextQuestion,
+        goToPreviousQuestion,
+        completeTest,
+        isTestComplete,
+        isLoading,
+        error
       }}
     >
       {children}
