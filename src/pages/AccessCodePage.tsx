@@ -78,7 +78,7 @@ const AccessCodePage = () => {
           <div className="text-center mb-12">
             <h1 className="text-3xl md:text-4xl font-bold text-inuka-crimson mb-4">Access Code Required</h1>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              To proceed with the Strength Africa assessment, please enter your unique access code below.
+              To proceed with the Strengths Africa assessment, please enter your unique access code below.
             </p>
           </div>
           

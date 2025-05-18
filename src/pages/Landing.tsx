@@ -96,7 +96,7 @@ const Landing = () => {
                 Ready to discover your strengths?
               </h2>
               <p className="text-lg text-gray-700 mb-8 font-inter">
-                Take the Inuka Strength Test today and start your journey to personal and professional growth.
+                Take the strengths test today and start your journey to personal and professional growth.
               </p>
               <Link to="/signup" className="inline-block">
                 <Button 

@@ -24,12 +24,12 @@ const Footer = () => {
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-4 text-inuka-brown">Contact</h3>
-            <p className="text-gray-600">Powered by Strength Africa</p>
-            <p className="text-gray-600 mt-2">info@strengthafrica.com</p>
+            <p className="text-gray-600">Powered by Strengths Africa</p>
+            <p className="text-gray-600 mt-2">info@strengthsafrica.com</p>
           </div>
         </div>
         <div className="border-t border-gray-200 mt-8 pt-8 text-center text-gray-500">
-          <p>© {new Date().getFullYear()} Inuka. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} strengths test. All rights reserved.</p>
         </div>
       </div>
     </footer>
