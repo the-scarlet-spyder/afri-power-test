@@ -1,9 +1,12 @@
 
 import React, { createContext, useContext, useState } from 'react';
-import { TestHistoryItem } from '../models/strength';
+import { TestHistoryItem as TestHistoryItemType } from '../models/strength';
 import { useAuth } from './AuthContext';
 import { getAllTestResults } from '@/lib/test-service';
 import { toast } from '@/components/ui/use-toast';
+
+// Export the TestHistoryItem type
+export type TestHistoryItem = TestHistoryItemType;
 
 interface TestHistoryContextType {
   testHistory: TestHistoryItem[] | null;

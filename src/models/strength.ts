@@ -1,3 +1,4 @@
+
 export interface Strength {
   id: string;
   name: string;
@@ -7,13 +8,13 @@ export interface Strength {
   recommendations: string[];
 }
 
-export enum StrengthCategory {
-  THINKING_LEARNING = "thinking-learning",
-  INTERPERSONAL = "interpersonal",
-  LEADERSHIP_INFLUENCE = "leadership-influence",
-  EXECUTION_DISCIPLINE = "execution-discipline",
-  IDENTITY_PURPOSE_VALUES = "identity-purpose-values"
-}
+// Changed from enum to string union type to match usage in data/strengths.ts
+export type StrengthCategory = 
+  | "thinking-learning" 
+  | "interpersonal" 
+  | "leadership-influence" 
+  | "execution-discipline" 
+  | "identity-purpose-values";
 
 export interface Question {
   id: string;
