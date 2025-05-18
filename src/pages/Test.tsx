@@ -32,8 +32,7 @@ const Test = () => {
     getCurrentCategory
   } = useTest();
   
-  // Temporarily use these until we update the context
-  const [selectedValue, setSelectedValue] = useState<number>(3);
+  const [selectedValue, setSelectedValue] = useState<number>(4);
   const currentQuestion = questions?.[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / (questions?.length || 1)) * 100;
   const currentCategory = getCurrentCategory();
@@ -91,7 +90,7 @@ const Test = () => {
       score: selectedValue
     });
     
-    setSelectedValue(3); // Reset to neutral for next question
+    setSelectedValue(4); // Reset to neutral for next question
     
     if (currentQuestionIndex >= questions.length - 1) {
       // Test is complete
@@ -143,31 +142,45 @@ const Test = () => {
                     {currentQuestion?.text}
                   </h2>
                   
-                  <div className="space-y-10 px-4 py-4">
+                  <div className="space-y-6 px-4 py-4">
+                    <div className="flex justify-between text-sm text-gray-500 mb-2">
+                      <span>Strongly Disagree</span>
+                      <span>Neutral</span>
+                      <span>Strongly Agree</span>
+                    </div>
+                    
                     <RadioGroup 
-                      defaultValue="3" 
-                      className="mt-8"
+                      defaultValue="4" 
+                      className="grid grid-cols-7 gap-2"
                       onValueChange={(value) => setSelectedValue(parseInt(value))}
                     >
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-col items-center">
                         <RadioGroupItem value="1" id="r1" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r1" className="cursor-pointer">Totally disagree</Label>
+                        <Label htmlFor="r1" className="mt-1 text-xs">1</Label>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-col items-center">
                         <RadioGroupItem value="2" id="r2" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r2" className="cursor-pointer">Disagree</Label>
+                        <Label htmlFor="r2" className="mt-1 text-xs">2</Label>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-col items-center">
                         <RadioGroupItem value="3" id="r3" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r3" className="cursor-pointer">Neutral</Label>
+                        <Label htmlFor="r3" className="mt-1 text-xs">3</Label>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-col items-center">
                         <RadioGroupItem value="4" id="r4" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r4" className="cursor-pointer">Agree</Label>
+                        <Label htmlFor="r4" className="mt-1 text-xs">4</Label>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex flex-col items-center">
                         <RadioGroupItem value="5" id="r5" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r5" className="cursor-pointer">Totally agree</Label>
+                        <Label htmlFor="r5" className="mt-1 text-xs">5</Label>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <RadioGroupItem value="6" id="r6" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
+                        <Label htmlFor="r6" className="mt-1 text-xs">6</Label>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <RadioGroupItem value="7" id="r7" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
+                        <Label htmlFor="r7" className="mt-1 text-xs">7</Label>
                       </div>
                     </RadioGroup>
                   </div>

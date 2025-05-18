@@ -1,10 +1,24 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AccessCodeVerification from '@/components/AccessCodeVerification';
+import { Card } from '@/components/ui/card';
 
 const AccessCodePage = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // If no user is logged in, redirect to login
+  if (!user) {
+    React.useEffect(() => {
+      navigate('/login');
+    }, []);
+    return null;
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F9F9F9]">
       <Navbar />
@@ -18,7 +32,11 @@ const AccessCodePage = () => {
             </p>
           </div>
           
-          <AccessCodeVerification />
+          <div className="max-w-md mx-auto">
+            <Card className="shadow-lg border-none">
+              <AccessCodeVerification />
+            </Card>
+          </div>
         </div>
       </main>
       
