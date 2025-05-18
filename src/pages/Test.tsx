@@ -14,6 +14,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
+import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const Test = () => {
@@ -38,10 +39,7 @@ const Test = () => {
   
   useEffect(() => {
     const checkAccessCode = async () => {
-      if (!user) {
-        navigate('/login', { replace: true });
-        return;
-      }
+      if (!user) return;
       
       try {
         const { data, error } = await supabase.rpc('has_valid_access_code', {
@@ -51,52 +49,32 @@ const Test = () => {
         if (error) {
           console.error('Error checking access code:', error);
           setHasValidCode(false);
-          toast({
-            title: "Error",
-            description: "Failed to verify your access code. Please try again.",
-            variant: "destructive",
-          });
         } else {
           setHasValidCode(data);
           
           // If user doesn't have a valid code, redirect to access code page
           if (!data) {
-            navigate('/access-code', { replace: true });
+            navigate('/access-code');
           }
         }
       } catch (err) {
         console.error('Error checking access code:', err);
         setHasValidCode(false);
-        toast({
-          title: "Error",
-          description: "Something went wrong. Please try again.",
-          variant: "destructive",
-        });
       } finally {
         setCheckingCode(false);
       }
     };
     
     checkAccessCode();
-  }, [user, navigate, toast]);
+  }, [user, navigate]);
   
   // Show loading while checking access code
   if (checkingCode) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#F9F9F9]">
-        <Navbar />
-        <div className="flex-grow flex flex-col items-center justify-center py-16">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-inuka-charcoal mb-2">Loading your test</h1>
-            <p className="text-gray-600">Please wait while we verify your access...</p>
-          </div>
-          <div className="flex flex-col items-center justify-center min-h-[50vh] p-4 w-full max-w-md">
-            <Skeleton className="h-12 w-full max-w-md mb-4" />
-            <Skeleton className="h-8 w-3/4 max-w-md mb-4" />
-            <Skeleton className="h-64 w-full max-w-md" />
-          </div>
-        </div>
-        <Footer />
+      <div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
+        <Skeleton className="h-12 w-full max-w-md mb-4" />
+        <Skeleton className="h-8 w-3/4 max-w-md mb-4" />
+        <Skeleton className="h-64 w-full max-w-md" />
       </div>
     );
   }
@@ -107,44 +85,17 @@ const Test = () => {
   }
 
   const handleNext = () => {
-    try {
-      if (!currentQuestion) {
-        console.error("No current question found");
-        toast({
-          title: "Error",
-          description: "No question available. Please refresh and try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      addResponse({
-        questionId: currentQuestion.id,
-        score: selectedValue
-      });
-      
-      setSelectedValue(4); // Reset to neutral for next question
-      
-      if (currentQuestionIndex >= questions.length - 1) {
-        // Test is complete
-        const results = calculateResults();
-        if (results) {
-          navigate('/results', { replace: true });
-        } else {
-          toast({
-            title: "Error",
-            description: "Could not calculate your results. Please try again.",
-            variant: "destructive",
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error handling next question:", error);
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+    addResponse({
+      questionId: currentQuestion.id,
+      score: selectedValue
+    });
+    
+    setSelectedValue(4); // Reset to neutral for next question
+    
+    if (currentQuestionIndex >= questions.length - 1) {
+      // Test is complete
+      calculateResults();
+      navigate('/results');
     }
   };
 
@@ -167,27 +118,6 @@ const Test = () => {
 
   const { badgeClass, progressClass } = getCategoryStyles();
   
-  if (!currentQuestion) {
-    return (
-      <div className="min-h-screen flex flex-col bg-[#F9F9F9]">
-        <Navbar />
-        <div className="flex-grow flex items-center justify-center">
-          <Card className="max-w-md mx-auto p-6 text-center">
-            <h2 className="text-xl font-bold mb-4">No questions available</h2>
-            <p className="mb-4">There was a problem loading the test questions.</p>
-            <Button 
-              onClick={() => window.location.reload()}
-              className="bg-inuka-crimson hover:bg-opacity-90"
-            >
-              Refresh Page
-            </Button>
-          </Card>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-  
   return (
     <div className="min-h-screen flex flex-col bg-[#F9F9F9] font-inter">
       <Navbar />
@@ -209,7 +139,7 @@ const Test = () => {
                 
                 <div className="mb-8 pt-2">
                   <h2 className="text-xl font-medium mb-10 text-inuka-charcoal text-center font-poppins">
-                    {currentQuestion.text}
+                    {currentQuestion?.text}
                   </h2>
                   
                   <div className="space-y-6 px-4 py-4">

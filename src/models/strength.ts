@@ -4,11 +4,10 @@ export interface Strength {
   name: string;
   tagline: string;
   description: string;
-  category: StrengthCategory;
   recommendations: string[];
+  category: StrengthCategory;
 }
 
-// Changed from enum to string union type to match usage in data/strengths.ts
 export type StrengthCategory = 
   | "thinking-learning" 
   | "interpersonal" 
@@ -24,7 +23,7 @@ export interface Question {
 
 export interface UserResponse {
   questionId: string;
-  score: number;
+  score: number; // 1-5 (Likert scale)
 }
 
 export interface UserResult {
@@ -43,11 +42,3 @@ export interface CategoryResult {
   }[];
 }
 
-// Add this export for TestHistoryItem
-export interface TestHistoryItem {
-  id: string;
-  responses: UserResponse[];
-  results: UserResult;
-  categoryResults: CategoryResult[];
-  testDate: string;
-}
