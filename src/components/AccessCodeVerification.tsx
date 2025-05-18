@@ -55,8 +55,11 @@ const AccessCodeVerification = () => {
           description: "Your access code has been verified.",
         });
         
-        // Navigate to test page after successful verification
-        navigate('/test');
+        // Force a small delay before navigation to ensure the toast is visible
+        setTimeout(() => {
+          console.log("Redirecting to /test after successful verification");
+          navigate('/test', { replace: true });
+        }, 500);
       } else {
         toast({
           title: "Invalid Code",
