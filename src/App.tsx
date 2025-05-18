@@ -1,100 +1,75 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React, { Suspense } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from './context/AuthContext';
+import { TestProvider } from './context/TestContext';
+import './App.css';
 
-import { AuthProvider } from "./context/AuthContext";
-import { TestProvider } from "./context/TestContext";
-import AuthGuard from "./components/AuthGuard";
+// Routes
+import Landing from './pages/Landing';
+import Index from './pages/Index';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Welcome from './pages/Welcome';
+import Test from './pages/Test';
+import Results from './pages/Results';
+import Profile from './pages/Profile';
+import AccessCodePage from './pages/AccessCodePage';
+import NotFound from './pages/NotFound';
+import AuthGuard from './components/AuthGuard';
 
-import Landing from "./pages/Landing";
-import Signup from "./pages/Signup";
-import Login from "./pages/Login";
-import Welcome from "./pages/Welcome";
-import Test from "./pages/Test";
-import Results from "./pages/Results";
-import Profile from "./pages/Profile";
-import NotFound from "./pages/NotFound";
-import VerifyCertificate from "./pages/VerifyCertificate";
-import Admin from "./pages/Admin";
-import AccessCodePage from "./pages/AccessCodePage";
-import AdminCodesPage from "./pages/AdminCodesPage";
+// Create a client
+const queryClient = new QueryClient();
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 30000,
-    },
-  },
-});
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TestProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/signup" element={
-                <AuthGuard requireAuth={false} redirectPath="/test">
-                  <Signup />
-                </AuthGuard>
-              } />
-              <Route path="/login" element={
-                <AuthGuard requireAuth={false} redirectPath="/test">
-                  <Login />
-                </AuthGuard>
-              } />
-              <Route path="/access-code" element={
-                <AuthGuard>
-                  <AccessCodePage />
-                </AuthGuard>
-              } />
-              <Route path="/welcome" element={
-                <AuthGuard>
-                  <Welcome />
-                </AuthGuard>
-              } />
-              <Route path="/test" element={
-                <AuthGuard requireCode={true} redirectPath="/access-code">
-                  <Test />
-                </AuthGuard>
-              } />
-              <Route path="/results" element={
-                <AuthGuard>
-                  <Results />
-                </AuthGuard>
-              } />
-              <Route path="/profile" element={
-                <AuthGuard>
-                  <Profile />
-                </AuthGuard>
-              } />
-              <Route path="/admin" element={
-                <AuthGuard adminOnly={true} redirectPath="/">
-                  <Admin />
-                </AuthGuard>
-              } />
-              <Route path="/admin/codes" element={
-                <AuthGuard adminOnly={true} redirectPath="/">
-                  <AdminCodesPage />
-                </AuthGuard>
-              } />
-              <Route path="/certificate/:certificateId" element={<VerifyCertificate />} />
-              <Route path="/verify" element={<VerifyCertificate />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </TestProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <TestProvider>
+            <Suspense fallback={<div>Loading...</div>}>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/home" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/welcome" element={<Welcome />} />
+                
+                <Route path="/test" element={
+                  <AuthGuard>
+                    <Test />
+                  </AuthGuard>
+                } />
+                
+                <Route path="/results" element={
+                  <AuthGuard>
+                    <Results />
+                  </AuthGuard>
+                } />
+                
+                <Route path="/profile" element={
+                  <AuthGuard>
+                    <Profile />
+                  </AuthGuard>
+                } />
+                
+                <Route path="/access-code" element={
+                  <AuthGuard>
+                    <AccessCodePage />
+                  </AuthGuard>
+                } />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </TestProvider>
+        </AuthProvider>
+        <Toaster />
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

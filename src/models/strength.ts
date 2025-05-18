@@ -1,19 +1,19 @@
-
 export interface Strength {
   id: string;
   name: string;
   tagline: string;
   description: string;
-  recommendations: string[];
   category: StrengthCategory;
+  recommendations: string[];
 }
 
-export type StrengthCategory = 
-  | "thinking-learning" 
-  | "interpersonal" 
-  | "leadership-influence" 
-  | "execution-discipline" 
-  | "identity-purpose-values";
+export enum StrengthCategory {
+  THINKING_LEARNING = "thinking-learning",
+  INTERPERSONAL = "interpersonal",
+  LEADERSHIP_INFLUENCE = "leadership-influence",
+  EXECUTION_DISCIPLINE = "execution-discipline",
+  IDENTITY_PURPOSE_VALUES = "identity-purpose-values"
+}
 
 export interface Question {
   id: string;
@@ -23,7 +23,7 @@ export interface Question {
 
 export interface UserResponse {
   questionId: string;
-  score: number; // 1-5 (Likert scale)
+  score: number;
 }
 
 export interface UserResult {
@@ -42,3 +42,11 @@ export interface CategoryResult {
   }[];
 }
 
+// Add this export for TestHistoryItem
+export interface TestHistoryItem {
+  id: string;
+  responses: UserResponse[];
+  results: UserResult;
+  categoryResults: CategoryResult[];
+  testDate: string;
+}

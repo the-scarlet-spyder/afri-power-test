@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase';
 import { UserResponse, UserResult, CategoryResult } from '@/models/strength';
 import { toast } from '@/components/ui/use-toast';
@@ -35,9 +36,9 @@ export const saveTestResults = async (
   } catch (error) {
     console.error('Error saving test results:', error);
     // Fall back to localStorage if Supabase fails
-    localStorage.setItem('inuka_responses', JSON.stringify(responses));
-    localStorage.setItem('inuka_results', JSON.stringify(results));
-    localStorage.setItem('inuka_category_results', JSON.stringify(categoryResults));
+    localStorage.setItem('strengths_responses', JSON.stringify(responses));
+    localStorage.setItem('strengths_results', JSON.stringify(results));
+    localStorage.setItem('strengths_category_results', JSON.stringify(categoryResults));
     throw error;
   }
 };
@@ -52,7 +53,7 @@ export const getLatestTestResult = async (userId: string) => {
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching test results:', error);
@@ -69,9 +70,9 @@ export const getLatestTestResult = async (userId: string) => {
   } catch (error) {
     console.error('Error fetching test results:', error);
     // Fall back to localStorage if Supabase fails
-    const storedResults = localStorage.getItem('inuka_results');
-    const storedCategoryResults = localStorage.getItem('inuka_category_results');
-    const storedResponses = localStorage.getItem('inuka_responses');
+    const storedResults = localStorage.getItem('strengths_results');
+    const storedCategoryResults = localStorage.getItem('strengths_category_results');
+    const storedResponses = localStorage.getItem('strengths_responses');
     
     if (storedResults && storedCategoryResults) {
       return {
@@ -102,15 +103,33 @@ export const getAllTestResults = async (userId: string) => {
     }
 
     console.log(`Found ${data?.length || 0} test results for user: ${userId}`);
-    return data.map(item => ({
-      id: item.id,
-      responses: JSON.parse(item.responses),
-      results: JSON.parse(item.results).results,
-      categoryResults: JSON.parse(item.results).categoryResults,
-      testDate: item.test_date
-    }));
+    
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
+    return data.map(item => {
+      try {
+        const parsedResults = JSON.parse(item.results);
+        return {
+          id: item.id,
+          responses: JSON.parse(item.responses),
+          results: parsedResults.results,
+          categoryResults: parsedResults.categoryResults,
+          testDate: item.test_date
+        };
+      } catch (parseError) {
+        console.error('Error parsing test result:', parseError);
+        throw new Error(`Failed to parse test result with ID ${item.id}`);
+      }
+    });
   } catch (error) {
     console.error('Error fetching all test results:', error);
+    toast({
+      title: "Error",
+      description: "Failed to fetch test history. Please try again later.",
+      variant: "destructive",
+    });
     return [];
   }
 };
@@ -136,10 +155,11 @@ export const saveCertificate = async (
       .select('id')
       .eq('user_id', userId)
       .eq('test_result_id', testResultId)
-      .single();
+      .maybeSingle();
 
-    if (checkError && checkError.code !== 'PGRST116') {
+    if (checkError) {
       console.error('Error checking for existing certificate:', checkError);
+      throw checkError;
     }
 
     if (existingCert) {
@@ -169,6 +189,11 @@ export const saveCertificate = async (
     return data;
   } catch (error) {
     console.error('Error saving certificate:', error);
+    toast({
+      title: "Error",
+      description: "Failed to save your certificate. Please try again.",
+      variant: "destructive",
+    });
     throw error;
   }
 };
@@ -192,6 +217,11 @@ export const getUserCertificates = async (userId: string) => {
     return data || [];
   } catch (error) {
     console.error('Error fetching certificates:', error);
+    toast({
+      title: "Error",
+      description: "Failed to fetch your certificates. Please try again.",
+      variant: "destructive",
+    });
     return [];
   }
 };
@@ -204,7 +234,7 @@ export const verifyCertificate = async (certificateId: string) => {
       .from('certificates')
       .select('*, test_results(*)')
       .eq('certificate_id', certificateId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error verifying certificate:', error);
@@ -215,6 +245,11 @@ export const verifyCertificate = async (certificateId: string) => {
     return data;
   } catch (error) {
     console.error('Error verifying certificate:', error);
+    toast({
+      title: "Error",
+      description: "Failed to verify the certificate. Please check the ID and try again.",
+      variant: "destructive",
+    });
     return null;
   }
 };
@@ -231,7 +266,7 @@ export const generateCertificatePDFData = async (certificateId: string) => {
         test_results(*)
       `)
       .eq('certificate_id', certificateId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching certificate data for PDF:', error);
@@ -268,6 +303,11 @@ export const generateCertificatePDFData = async (certificateId: string) => {
     }
   } catch (error) {
     console.error('Error generating certificate PDF data:', error);
+    toast({
+      title: "Error",
+      description: "Failed to generate the certificate PDF. Please try again.",
+      variant: "destructive",
+    });
     throw error;
   }
 };
