@@ -389,10 +389,9 @@ const Admin = () => {
           onValueChange={setActiveTab}
           className="w-full"
         >
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="test-results">Test Results</TabsTrigger>
             <TabsTrigger value="certificates">Certificates</TabsTrigger>
-            <TabsTrigger value="access-codes">Access Codes</TabsTrigger>
             <TabsTrigger value="tools">Tools</TabsTrigger>
           </TabsList>
           
@@ -538,25 +537,6 @@ const Admin = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="access-codes">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">Access Code Management</h2>
-              <Separator className="mb-4" />
-              
-              <div className="mb-6">
-                <Button 
-                  onClick={() => navigate('/admin/codes')} 
-                  className="bg-inuka-crimson hover:bg-inuka-crimson/90"
-                >
-                  Go to Access Code Manager
-                </Button>
-                <p className="text-sm text-gray-500 mt-2">
-                  Create and manage access codes for the Strength Africa assessment.
-                </p>
-              </div>
-            </div>
-          </TabsContent>
-          
           <TabsContent value="tools">
             <CertificateGenerator />
           </TabsContent>

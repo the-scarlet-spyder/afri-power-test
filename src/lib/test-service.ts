@@ -11,24 +11,6 @@ export const saveTestResults = async (
 ) => {
   console.log("Saving test results for user:", userId);
   try {
-    // First, get the active access code used by this user
-    const { data: accessCode, error: accessCodeError } = await supabase
-      .from('access_codes')
-      .select('id')
-      .eq('assigned_to', userId)
-      .eq('used', true)
-      .single();
-
-    if (accessCodeError && accessCodeError.code !== 'PGRST116') {
-      console.error('Error fetching access code:', accessCodeError);
-      throw accessCodeError;
-    }
-
-    // If no access code found, still allow test submission but log the issue
-    if (!accessCode) {
-      console.warn('No active access code found for user when saving test');
-    }
-
     const { data, error } = await supabase
       .from('test_results')
       .insert({
@@ -38,8 +20,7 @@ export const saveTestResults = async (
         results: JSON.stringify({
           results,
           categoryResults
-        }),
-        access_code_id: accessCode?.id || null
+        })
       })
       .select('id')
       .single();
@@ -50,19 +31,6 @@ export const saveTestResults = async (
     }
 
     console.log("Test results saved successfully, ID:", data?.id);
-    
-    // If access code exists, mark as used in a separate operation
-    if (accessCode) {
-      const { error: updateError } = await supabase
-        .from('access_codes')
-        .update({ used: true, used_at: new Date().toISOString() })
-        .eq('id', accessCode.id);
-        
-      if (updateError) {
-        console.error('Error updating access code:', updateError);
-      }
-    }
-    
     return data;
   } catch (error) {
     console.error('Error saving test results:', error);
@@ -71,29 +39,6 @@ export const saveTestResults = async (
     localStorage.setItem('inuka_results', JSON.stringify(results));
     localStorage.setItem('inuka_category_results', JSON.stringify(categoryResults));
     throw error;
-  }
-};
-
-// Check if user can take a test with their current access code
-export const canTakeTest = async (userId: string) => {
-  console.log("Checking if user can take a test:", userId);
-  try {
-    // Use the database function directly
-    const { data, error } = await supabase.rpc('can_take_test_with_current_code', {
-      _user_id: userId
-    });
-
-    if (error) {
-      console.error('Error checking test eligibility:', error);
-      throw error;
-    }
-
-    console.log("Test eligibility result:", data);
-    return data;
-  } catch (error) {
-    console.error('Error checking test eligibility:', error);
-    // Fall back to allowing the test in case of errors
-    return { canTake: true, message: "Error checking eligibility, proceeding with test." };
   }
 };
 

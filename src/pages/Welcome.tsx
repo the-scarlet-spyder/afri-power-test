@@ -15,7 +15,7 @@ const Welcome = () => {
         <div className="inuka-container">
           <div className="max-w-3xl mx-auto bg-white p-8 md:p-12 rounded-xl shadow-md animate-fade-in">
             <h1 className="text-3xl md:text-4xl font-bold text-inuka-charcoal text-center mb-4 font-poppins">
-              Welcome to Strengths Africa!
+              Welcome to Strength Africa!
             </h1>
             
             <h2 className="text-xl md:text-2xl text-inuka-crimson text-center mb-6 font-poppins">

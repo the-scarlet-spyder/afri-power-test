@@ -2,27 +2,27 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserResponse, UserResult, Strength, CategoryResult, StrengthCategory } from '../models/strength';
 import { questions, strengths, getCategoryDisplayName } from '../data/strengths';
-
-interface TestHistory {
-  id: string;
-  testDate: string;
-  results: UserResult;
-}
+import { useAuth } from './AuthContext';
+import { saveTestResults, getLatestTestResult, getAllTestResults } from '@/lib/test-service';
+import { toast } from '@/components/ui/use-toast';
 
 interface TestContextType {
   responses: UserResponse[];
   currentQuestionIndex: number;
-  questions: typeof questions;
   addResponse: (response: UserResponse) => void;
-  calculateResults: () => UserResult;
+  calculateResults: () => Promise<UserResult | null>;
   resetTest: () => void;
   results: UserResult | null;
   categoryResults: CategoryResult[] | null;
   getCategoryName: (category: StrengthCategory) => string;
   getCurrentCategory: () => string;
-  testHistory: TestHistory[];
-  fetchTestHistory: () => void;
+  testHistory: {
+    id: string;
+    testDate: string;
+    results: UserResult;
+  }[] | null;
   loadingHistory: boolean;
+  fetchTestHistory: () => Promise<void>;
 }
 
 const TestContext = createContext<TestContextType | undefined>(undefined);
@@ -40,20 +40,75 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [results, setResults] = useState<UserResult | null>(null);
   const [categoryResults, setCategoryResults] = useState<CategoryResult[] | null>(null);
-  const [testHistory, setTestHistory] = useState<TestHistory[]>([]);
+  const [testHistory, setTestHistory] = useState<{id: string; testDate: string; results: UserResult}[] | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const { user } = useAuth();
+
+  // Load latest test results if available
+  useEffect(() => {
+    const loadLatestResults = async () => {
+      if (user) {
+        try {
+          const latestTest = await getLatestTestResult(user.id);
+          if (latestTest) {
+            setResponses(latestTest.responses);
+            setResults(latestTest.results);
+            setCategoryResults(latestTest.categoryResults);
+          }
+        } catch (error) {
+          console.error("Failed to load latest test results:", error);
+        }
+      } else {
+        // Try loading from localStorage if user is not logged in
+        const storedResults = localStorage.getItem('inuka_results');
+        const storedCategoryResults = localStorage.getItem('inuka_category_results');
+        const storedResponses = localStorage.getItem('inuka_responses');
+        
+        if (storedResults) {
+          try {
+            setResults(JSON.parse(storedResults));
+          } catch (e) {
+            console.error("Failed to parse stored results:", e);
+          }
+        }
+        
+        if (storedCategoryResults) {
+          try {
+            setCategoryResults(JSON.parse(storedCategoryResults));
+          } catch (e) {
+            console.error("Failed to parse stored category results:", e);
+          }
+        }
+        
+        if (storedResponses) {
+          try {
+            setResponses(JSON.parse(storedResponses));
+          } catch (e) {
+            console.error("Failed to parse stored responses:", e);
+          }
+        }
+      }
+    };
+
+    loadLatestResults();
+  }, [user]);
 
   const addResponse = (response: UserResponse) => {
     // Check if we're updating an existing response
     const existingIndex = responses.findIndex(r => r.questionId === response.questionId);
     
+    let newResponses: UserResponse[];
     if (existingIndex >= 0) {
-      const newResponses = [...responses];
+      newResponses = [...responses];
       newResponses[existingIndex] = response;
       setResponses(newResponses);
     } else {
-      setResponses([...responses, response]);
+      newResponses = [...responses, response];
+      setResponses(newResponses);
     }
+    
+    // Save to localStorage as backup
+    localStorage.setItem('inuka_responses', JSON.stringify(newResponses));
     
     // Move to the next question if available
     if (currentQuestionIndex < questions.length - 1) {
@@ -61,7 +116,7 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const calculateResults = () => {
+  const calculateResults = async () => {
     // Create a map to store strength scores
     const strengthScores = new Map<string, { total: number, count: number }>();
     
@@ -76,13 +131,7 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (question) {
         const scoreData = strengthScores.get(question.strengthId);
         if (scoreData) {
-          // Normalize 7-point scale score to a 0-1 range for consistent results
-          // 1 becomes 0, 4 becomes 0.5, 7 becomes 1
-          const normalizedScore = (response.score - 1) / 6;
-          // Scale to original 1-5 range for compatibility with existing results display
-          const scaledScore = normalizedScore * 4 + 1;
-          
-          scoreData.total += scaledScore;
+          scoreData.total += response.score;
           scoreData.count += 1;
         }
       }
@@ -128,73 +177,72 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
     
-    const categoryResults = Array.from(categoriesMap.entries()).map(([category, data]) => ({
+    const categoriesResults = Array.from(categoriesMap.entries()).map(([category, data]) => ({
       category,
       displayName: data.displayName,
       strengths: data.strengths.sort((a, b) => b.score - a.score)
     }));
     
     setResults(result);
-    setCategoryResults(categoryResults);
+    setCategoryResults(categoriesResults);
     
-    // Save the test result to localStorage with a timestamp
-    const testId = `test_${Date.now()}`;
-    const testResult = {
-      id: testId,
-      testDate: new Date().toISOString(),
-      results: result
-    };
-    
-    // Save current test to localStorage
+    // Save to localStorage as backup
     localStorage.setItem('inuka_results', JSON.stringify(result));
-    localStorage.setItem('inuka_category_results', JSON.stringify(categoryResults));
+    localStorage.setItem('inuka_category_results', JSON.stringify(categoriesResults));
     
-    // Add to test history
-    const existingHistory = localStorage.getItem('inuka_test_history');
-    let history: TestHistory[] = [];
-    
-    if (existingHistory) {
+    // Save to Supabase if user is logged in
+    if (user) {
       try {
-        history = JSON.parse(existingHistory);
-      } catch (e) {
-        console.error('Error parsing test history:', e);
+        await saveTestResults(user.id, responses, result, categoriesResults);
+        toast({
+          title: "Results saved",
+          description: "Your test results have been saved to your account.",
+        });
+      } catch (error) {
+        console.error("Failed to save results to Supabase:", error);
+        toast({
+          title: "Warning",
+          description: "We saved your results locally, but couldn't save them to your account.",
+          variant: "destructive",
+        });
       }
     }
-    
-    history.push(testResult);
-    localStorage.setItem('inuka_test_history', JSON.stringify(history));
-    
-    // Update state with new history
-    setTestHistory(history);
     
     return result;
   };
 
-  const fetchTestHistory = () => {
+  const fetchTestHistory = async () => {
+    if (!user) {
+      setTestHistory(null);
+      return;
+    }
+    
     setLoadingHistory(true);
     try {
-      const existingHistory = localStorage.getItem('inuka_test_history');
-      if (existingHistory) {
-        const history = JSON.parse(existingHistory);
-        setTestHistory(history);
-      }
-    } catch (e) {
-      console.error('Error fetching test history:', e);
+      const allResults = await getAllTestResults(user.id);
+      setTestHistory(allResults.map(item => ({
+        id: item.id,
+        testDate: item.testDate,
+        results: item.results
+      })));
+    } catch (error) {
+      console.error("Failed to fetch test history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load your test history.",
+        variant: "destructive",
+      });
     } finally {
       setLoadingHistory(false);
     }
   };
-
-  // Load test history on mount
-  useEffect(() => {
-    fetchTestHistory();
-  }, []);
 
   const resetTest = () => {
     setResponses([]);
     setCurrentQuestionIndex(0);
     setResults(null);
     setCategoryResults(null);
+    localStorage.removeItem('inuka_responses');
     localStorage.removeItem('inuka_results');
     localStorage.removeItem('inuka_category_results');
   };
@@ -219,7 +267,6 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{ 
         responses, 
         currentQuestionIndex, 
-        questions,
         addResponse, 
         calculateResults,
         resetTest,
@@ -228,8 +275,8 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
         getCategoryName,
         getCurrentCategory,
         testHistory,
-        fetchTestHistory,
-        loadingHistory
+        loadingHistory,
+        fetchTestHistory
       }}
     >
       {children}

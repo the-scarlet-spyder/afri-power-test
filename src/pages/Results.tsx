@@ -1,125 +1,62 @@
 
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTest } from '@/context/TestContext';
 import { useAuth } from '@/context/AuthContext';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from '@/components/ui/use-toast';
+import Certificate from '@/components/Certificate';
+import { format } from 'date-fns';
+import { saveCertificate } from '@/lib/test-service';
+
+// Import new components
 import ResultsTopStrengths from '@/components/results/ResultsTopStrengths';
 import ResultsByCategory from '@/components/results/ResultsByCategory';
 import NextSteps from '@/components/results/NextSteps';
 import CertificateDownload from '@/components/results/CertificateDownload';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { format } from 'date-fns';
-import { saveTestResults, saveCertificate, canTakeTest } from '@/lib/test-service';
 
-// Helper functions for category styling that will be passed to child components
-const getCategoryCardClass = (category: string): string => {
-  switch (category) {
-    case "thinking-learning": return "strength-card-thinking";
-    case "interpersonal": return "strength-card-interpersonal";
-    case "leadership-influence": return "strength-card-leadership";
-    case "execution-discipline": return "strength-card-execution";
-    case "identity-purpose-values": return "strength-card-identity";
-    default: return "border-l-primary";
-  }
-};
-
-const getCategoryBadgeClass = (category: string): string => {
-  switch (category) {
-    case "thinking-learning": return "strength-badge-thinking";
-    case "interpersonal": return "strength-badge-interpersonal";
-    case "leadership-influence": return "strength-badge-leadership";
-    case "execution-discipline": return "strength-badge-execution";
-    case "identity-purpose-values": return "strength-badge-identity";
-    default: return "";
-  }
-};
-
-const getCategoryColor = (category: string): string => {
-  const categoryColors: Record<string, string> = {
-    "thinking-learning": "#3B82F6", // Blue
-    "interpersonal": "#FACC15",     // Yellow
-    "leadership-influence": "#EF4444", // Red
-    "execution-discipline": "#22C55E", // Green
-    "identity-purpose-values": "#8B5CF6" // Purple
-  };
-  
-  return categoryColors[category] || "#C92A2A"; // Default to crimson
-};
+// Import utility functions
+import { 
+  getCategoryCardClass, 
+  getCategoryBadgeClass, 
+  getCategoryColor 
+} from '@/utils/styleUtils';
+import { generateCertificatePDF } from '@/utils/certificatePDFGenerator';
 
 const Results = () => {
-  const { results, categoryResults, responses, resetTest, getCategoryName } = useTest();
+  const { results, categoryResults, resetTest, getCategoryName, testHistory } = useTest();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const testId = searchParams.get('test');
   const [userName, setUserName] = useState<string>("");
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [resultsSaved, setResultsSaved] = useState(false);
-  const [certificateSaved, setCertificateSaved] = useState(false);
-  const [testResultId, setTestResultId] = useState<string | null>(null);
-  const [certificateId, setTestCertificateId] = useState<string | null>(null);
+  const [certificateId, setCertificateId] = useState<string>("");
+  const certificateRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    if (!results) {
+    if (!results && !testHistory) {
       const storedResults = localStorage.getItem('inuka_results');
       if (!storedResults) {
         navigate('/test');
       }
     }
     
-    // Try to get user's name from localStorage if available
-    const storedName = localStorage.getItem('user_name');
-    if (storedName) {
-      setUserName(storedName);
-    } else if (user?.name) { // Changed from user?.user_metadata?.name to user?.name
+    // Try to get user's name from localStorage or logged in user
+    if (user) {
       setUserName(user.name);
-      localStorage.setItem('user_name', user.name);
-    } else if (user?.email) { // Adding a fallback to email if name is not available
-      const nameFromEmail = user.email.split('@')[0];
-      setUserName(nameFromEmail);
-      localStorage.setItem('user_name', nameFromEmail);
-    }
-  }, [results, navigate, user]);
-  
-  // Save test results to the database when component mounts
-  useEffect(() => {
-    const saveResults = async () => {
-      if (user && results && responses && categoryResults && !resultsSaved) {
-        try {
-          const savedData = await saveTestResults(
-            user.id,
-            responses,
-            results,
-            categoryResults
-          );
-          
-          console.log("Test results saved:", savedData);
-          setResultsSaved(true);
-          
-          if (savedData?.id) {
-            setTestResultId(savedData.id);
-          }
-
-          toast({
-            title: "Test results saved",
-            description: "Your test results have been saved successfully.",
-          });
-        } catch (error) {
-          console.error("Error saving test results:", error);
-          toast({
-            title: "Error saving results",
-            description: "There was a problem saving your test results. They will be stored locally instead.",
-            variant: "destructive",
-          });
-        }
+    } else {
+      const storedName = localStorage.getItem('user_name');
+      if (storedName) {
+        setUserName(storedName);
       }
-    };
+    }
     
-    saveResults();
-  }, [user, results, responses, categoryResults, resultsSaved, toast]);
+    // Generate a certificate ID
+    setCertificateId(generateCertificateId());
+  }, [results, navigate, user, testHistory]);
   
   const handleRetake = () => {
     resetTest();
@@ -131,50 +68,9 @@ const Results = () => {
     return `SA-${Math.floor(100000 + Math.random() * 900000)}`;
   };
 
-  // Function to handle the PDF download completion
-  const handlePDFComplete = async () => {
-    setIsGeneratingPDF(false);
-    
-    // Save certificate to database
-    if (user && testResultId && !certificateSaved) {
-      try {
-        const certId = certificateId || generateCertificateId();
-        setTestCertificateId(certId);
-        
-        const savedCertificate = await saveCertificate(
-          user.id,
-          testResultId,
-          userName || 'User',
-          certId
-        );
-        
-        console.log("Certificate saved:", savedCertificate);
-        setCertificateSaved(true);
-      } catch (error) {
-        console.error("Error saving certificate:", error);
-      }
-    }
-    
-    toast({
-      title: "Certificate Downloaded",
-      description: "Your certificate has been successfully downloaded.",
-    });
-  };
-
-  // Function to handle PDF generation errors
-  const handlePDFError = (error: Error) => {
-    console.error("Error generating PDF:", error);
-    setIsGeneratingPDF(false);
-    toast({
-      title: "Error generating certificate",
-      description: "There was a problem creating your PDF. Please try again.",
-      variant: "destructive",
-    });
-  };
-
   // Function to download the certificate as PDF
   const downloadPDF = async () => {
-    if (!results) {
+    if (!certificateRef.current || !results) {
       toast({
         title: "Error",
         description: "Please make sure you have completed the test and entered your name.",
@@ -189,15 +85,89 @@ const Results = () => {
       description: "Please wait while we prepare your PDF certificate...",
     });
     
-    // Generate a certificate ID if there isn't one already
-    const certId = certificateId || generateCertificateId();
-    setTestCertificateId(certId);
-    
-    // The actual PDF generation is now handled in the CertificateDownload component
-    // This function is now primarily for state management
-    setTimeout(() => {
-      handlePDFComplete();
-    }, 500);
+    try {
+      await generateCertificatePDF(
+        userName,
+        results,
+        certificateId,
+        () => {
+          handleSaveCertificate();
+          toast({
+            title: "Certificate Downloaded",
+            description: "Your certificate has been successfully downloaded.",
+          });
+          setIsGeneratingPDF(false);
+          if (certificateRef.current) {
+            certificateRef.current.style.display = 'none';
+          }
+        },
+        (error) => {
+          console.error("Error generating PDF:", error);
+          toast({
+            title: "Error generating certificate",
+            description: "There was a problem creating your PDF. Please try again.",
+            variant: "destructive",
+          });
+          setIsGeneratingPDF(false);
+        }
+      );
+    } catch (error) {
+      console.error("Error in PDF generation:", error);
+      setIsGeneratingPDF(false);
+      toast({
+        title: "Error generating certificate",
+        description: "There was a problem creating your PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Function to save certificate to database
+  const handleSaveCertificate = async () => {
+    if (user) {
+      try {
+        // Get the current test result ID - either from URL params or the most recent test
+        const currentTestId = testId || (testHistory && testHistory.length > 0 ? testHistory[0].id : '');
+        
+        if (currentTestId) {
+          console.log("Saving certificate with test ID:", currentTestId);
+          
+          const savedCert = await saveCertificate(
+            user.id,
+            currentTestId,
+            userName,
+            certificateId
+          );
+          
+          if (savedCert) {
+            console.log("Certificate saved successfully with ID:", savedCert.id);
+            
+            toast({
+              title: "Certificate saved",
+              description: "Your certificate has been saved to your account.",
+            });
+          } else {
+            console.error("No data returned from saveCertificate");
+          }
+        } else {
+          console.error("No test ID available to save certificate");
+          toast({
+            title: "Warning",
+            description: "Could not save certificate to your account: No test ID found.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Failed to save certificate to Supabase:", error);
+        toast({
+          title: "Warning",
+          description: "Could not save certificate to your account. Please try again later.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      console.log("User not logged in, certificate not saved to database");
+    }
   };
 
   if (!results) {
@@ -236,7 +206,7 @@ const Results = () => {
               
               <TabsContent value="top-strengths">
                 <ResultsTopStrengths 
-                  results={results} 
+                  results={results}
                   getCategoryName={getCategoryName}
                   getCategoryCardClass={getCategoryCardClass}
                   getCategoryBadgeClass={getCategoryBadgeClass}
@@ -244,30 +214,38 @@ const Results = () => {
               </TabsContent>
               
               <TabsContent value="by-category">
-                {categoryResults && (
-                  <ResultsByCategory 
-                    categoryResults={categoryResults} 
-                    getCategoryCardClass={getCategoryCardClass}
-                    getCategoryColor={getCategoryColor}
-                  />
-                )}
+                <ResultsByCategory 
+                  categoryResults={categoryResults} 
+                  getCategoryCardClass={getCategoryCardClass}
+                  getCategoryColor={getCategoryColor}
+                />
               </TabsContent>
             </Tabs>
             
             <NextSteps />
             
-            <CertificateDownload
+            <CertificateDownload 
               userName={userName}
               setUserName={setUserName}
               isGeneratingPDF={isGeneratingPDF}
               downloadPDF={downloadPDF}
               handleRetake={handleRetake}
-              certificateId={certificateId || generateCertificateId()}
-              results={results}
+              certificateId={certificateId}
             />
           </div>
         </div>
       </main>
+      
+      {/* Hidden certificate component for PDF generation */}
+      <div className="hidden">
+        <Certificate 
+          ref={certificateRef}
+          userName={userName || "Your Name"}
+          results={results}
+          date={format(new Date(), "MMMM d, yyyy")}
+          certificateId={certificateId}
+        />
+      </div>
       
       <Footer />
     </div>

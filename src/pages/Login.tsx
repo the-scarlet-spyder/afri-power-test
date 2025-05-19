@@ -37,13 +37,8 @@ const Login = () => {
     try {
       setIsSubmitting(true);
       await login(email, password);
-      toast({
-        title: "Success!",
-        description: "You've been logged in.",
-      });
-      navigate('/welcome');
+      // The AuthGuard component will handle redirection based on test completion
     } catch (error) {
-      console.error("Login error:", error);
       toast({
         title: "Error",
         description: "Invalid email or password.",

@@ -9,39 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      access_codes: {
-        Row: {
-          assigned_to: string | null
-          batch_name: string | null
-          code: string
-          created_at: string | null
-          created_by: string | null
-          id: string
-          used: boolean | null
-          used_at: string | null
-        }
-        Insert: {
-          assigned_to?: string | null
-          batch_name?: string | null
-          code: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          used?: boolean | null
-          used_at?: string | null
-        }
-        Update: {
-          assigned_to?: string | null
-          batch_name?: string | null
-          code?: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          used?: boolean | null
-          used_at?: string | null
-        }
-        Relationships: []
-      }
       certificates: {
         Row: {
           certificate_id: string
@@ -109,7 +76,6 @@ export type Database = {
       }
       test_results: {
         Row: {
-          access_code_id: string | null
           created_at: string | null
           id: string
           responses: Json
@@ -118,7 +84,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          access_code_id?: string | null
           created_at?: string | null
           id?: string
           responses: Json
@@ -127,7 +92,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          access_code_id?: string | null
           created_at?: string | null
           id?: string
           responses?: Json
@@ -135,53 +99,14 @@ export type Database = {
           test_date?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "test_results_access_code_id_fkey"
-            columns: ["access_code_id"]
-            isOneToOne: false
-            referencedRelation: "access_codes"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      can_take_test_with_current_code: {
-        Args: { _user_id: string }
-        Returns: Json
-      }
-      create_access_code: {
-        Args: { _code: string; _created_by: string; _batch_name: string }
-        Returns: undefined
-      }
-      delete_access_code: {
-        Args: { _code_id: string }
-        Returns: undefined
-      }
-      generate_access_codes: {
-        Args: { _codes: string[]; _created_by: string; _batch_name: string }
-        Returns: undefined
-      }
-      has_role: {
-        Args: { _user_id: string; _role: string }
-        Returns: boolean
-      }
-      has_valid_access_code: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
-      is_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
-      verify_access_code: {
-        Args: { _code: string; _user_id: string }
-        Returns: Json
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
