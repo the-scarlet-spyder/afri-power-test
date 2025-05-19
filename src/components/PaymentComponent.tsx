@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useAuth } from '@/context/AuthContext';
 
 // Replace with your Paystack public key
-const PAYSTACK_PUBLIC_KEY = 'pk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const PAYSTACK_PUBLIC_KEY = 'pk_test_d9df47d0da706f295ed9ac775e08e55e26709f61';
 
 interface PaymentComponentProps {
   amount: number; // amount in the lowest currency unit (e.g., kobo, cents)
