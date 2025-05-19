@@ -10,11 +10,12 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Slider } from '@/components/ui/slider';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 const Test = () => {
   const { currentQuestionIndex, addResponse, calculateResults, getCurrentCategory } = useTest();
-  const [selectedValue, setSelectedValue] = useState<number>(3);
+  const [selectedValue, setSelectedValue] = useState<number>(4);
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -28,7 +29,7 @@ const Test = () => {
       score: selectedValue
     });
     
-    setSelectedValue(3); // Reset to neutral for next question
+    setSelectedValue(4); // Reset to neutral for next question
     
     if (currentQuestionIndex >= questions.length - 1) {
       // Test is complete
@@ -67,7 +68,7 @@ const Test = () => {
               <CardHeader className="bg-gradient-to-r from-inuka-crimson to-[#a52323] text-white rounded-t-lg">
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-2xl font-poppins">
-                    Strength Africa Assessment
+                    Strengths Africa Assessment
                   </CardTitle>
                   <Badge className="bg-white text-inuka-crimson hover:bg-inuka-offwhite">
                     Question {currentQuestionIndex + 1} of {questions.length}
@@ -94,20 +95,28 @@ const Test = () => {
                     {currentQuestion.text}
                   </h2>
                   
-                  <div className="space-y-10 px-4 py-4">
-                    <Slider 
-                      defaultValue={[3]} 
-                      max={5} 
-                      min={1} 
-                      step={1} 
-                      value={[selectedValue]}
-                      onValueChange={(value) => setSelectedValue(value[0])} 
-                      className="mt-8"
-                    />
+                  <div className="space-y-8 px-4 py-6">
+                    <RadioGroup
+                      className="grid grid-cols-7 gap-2"
+                      value={selectedValue.toString()}
+                      onValueChange={(value) => setSelectedValue(parseInt(value))}
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7].map((value) => (
+                        <div key={value} className="flex flex-col items-center space-y-1.5">
+                          <RadioGroupItem value={value.toString()} id={`value-${value}`} />
+                          <Label 
+                            htmlFor={`value-${value}`} 
+                            className="text-xs text-center cursor-pointer"
+                          >
+                            {value}
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
                     
-                    <div className="flex justify-between text-sm font-medium text-inuka-charcoal">
-                      <span>Totally disagree</span>
-                      <span>Totally agree</span>
+                    <div className="flex justify-between text-sm font-medium text-inuka-charcoal mt-2">
+                      <span>Strongly disagree</span>
+                      <span>Strongly agree</span>
                     </div>
                   </div>
                 </div>
