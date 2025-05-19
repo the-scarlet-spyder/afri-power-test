@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { TestProvider } from "./context/TestContext";
 import AuthGuard from "./components/AuthGuard";
+import PaymentGuard from "./components/PaymentGuard";
 
 import Landing from "./pages/Landing";
 import Signup from "./pages/Signup";
@@ -16,6 +17,7 @@ import Welcome from "./pages/Welcome";
 import Test from "./pages/Test";
 import Results from "./pages/Results";
 import Profile from "./pages/Profile";
+import Payment from "./pages/Payment";
 import NotFound from "./pages/NotFound";
 import VerifyCertificate from "./pages/VerifyCertificate";
 import Admin from "./pages/Admin";
@@ -40,28 +42,39 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/signup" element={
-                <AuthGuard requireAuth={false} redirectPath="/test">
+                <AuthGuard requireAuth={false} redirectPath="/payment">
                   <Signup />
                 </AuthGuard>
               } />
               <Route path="/login" element={
-                <AuthGuard requireAuth={false} redirectPath="/test">
+                <AuthGuard requireAuth={false} redirectPath="/payment">
                   <Login />
+                </AuthGuard>
+              } />
+              <Route path="/payment" element={
+                <AuthGuard>
+                  <Payment />
                 </AuthGuard>
               } />
               <Route path="/welcome" element={
                 <AuthGuard>
-                  <Welcome />
+                  <PaymentGuard>
+                    <Welcome />
+                  </PaymentGuard>
                 </AuthGuard>
               } />
               <Route path="/test" element={
                 <AuthGuard>
-                  <Test />
+                  <PaymentGuard>
+                    <Test />
+                  </PaymentGuard>
                 </AuthGuard>
               } />
               <Route path="/results" element={
                 <AuthGuard>
-                  <Results />
+                  <PaymentGuard>
+                    <Results />
+                  </PaymentGuard>
                 </AuthGuard>
               } />
               <Route path="/profile" element={

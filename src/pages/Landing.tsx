@@ -28,14 +28,14 @@ const Landing = () => {
               </h1>
               
               <p className="text-xl text-gray-700 mb-8 font-inter">
-                A free tool to unlock your unique potential, designed for African individuals at every stage of life.
+                A tool to unlock your unique potential, designed for African individuals at every stage of life.
               </p>
               
               <Link to="/signup" className="inline-block">
                 <Button 
                   className="bg-inuka-crimson hover:bg-opacity-90 text-white font-semibold py-6 px-10 rounded-md text-lg shadow-md transition-all duration-300 hover:translate-y-[-2px] active:translate-y-[1px]"
                 >
-                  Take the Free Test <ArrowRight className="ml-2 h-5 w-5" />
+                  Take the Test <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               
@@ -96,7 +96,7 @@ const Landing = () => {
                 Ready to discover your strengths?
               </h2>
               <p className="text-lg text-gray-700 mb-8 font-inter">
-                Take the Inuka Strength Test today and start your journey to personal and professional growth.
+                Take the Strengths Test today and start your journey to personal and professional growth.
               </p>
               <Link to="/signup" className="inline-block">
                 <Button 
