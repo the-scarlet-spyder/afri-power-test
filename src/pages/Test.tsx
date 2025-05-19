@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -26,7 +27,7 @@ const Test = () => {
     error,
   } = useTest();
   const navigate = useNavigate();
-	const { toast } = useToast();
+  const { toast } = useToast();
   const [canStart, setCanStart] = useState(false);
   const [checkingEligibility, setCheckingEligibility] = useState(true);
 
@@ -38,11 +39,11 @@ const Test = () => {
           setCanStart(canTake);
         } catch (err) {
           console.error("Error checking test eligibility:", err);
-					toast({
-						title: "Error",
-						description: "Failed to check test eligibility. Please try again later.",
-						variant: "destructive",
-					});
+          toast({
+            title: "Error",
+            description: "Failed to check test eligibility. Please try again later.",
+            variant: "destructive",
+          });
         } finally {
           setCheckingEligibility(false);
         }
@@ -75,11 +76,11 @@ const Test = () => {
       navigate('/results');
     } catch (err) {
       console.error("Error submitting test:", err);
-			toast({
-				title: "Error",
-				description: "Failed to submit the test. Please try again later.",
-				variant: "destructive",
-			});
+      toast({
+        title: "Error",
+        description: "Failed to submit the test. Please try again later.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -89,6 +90,18 @@ const Test = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-inuka-crimson mb-4">Checking your eligibility...</h2>
           <p className="text-gray-600">Please wait while we verify if you can take the test.</p>
+          
+          {/* Add Home button */}
+          <div className="mt-8">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2"
+            >
+              <Home size={18} />
+              Back to Home
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -100,6 +113,18 @@ const Test = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-inuka-crimson mb-4">Sorry, you are not eligible to take the test at this time.</h2>
           <p className="text-gray-600">Please contact support for more information.</p>
+          
+          {/* Add Home button */}
+          <div className="mt-8">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2"
+            >
+              <Home size={18} />
+              Back to Home
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -111,6 +136,18 @@ const Test = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-inuka-crimson mb-4">Loading questions...</h2>
           <p className="text-gray-600">Please wait while we fetch the questions for you.</p>
+          
+          {/* Add Home button */}
+          <div className="mt-8">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2"
+            >
+              <Home size={18} />
+              Back to Home
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -122,6 +159,18 @@ const Test = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-inuka-crimson mb-4">Oops!</h2>
           <p className="text-gray-600">An error occurred while loading the questions. Please try again later.</p>
+          
+          {/* Add Home button */}
+          <div className="mt-8">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2"
+            >
+              <Home size={18} />
+              Back to Home
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -133,6 +182,18 @@ const Test = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-inuka-crimson mb-4">No questions available</h2>
           <p className="text-gray-600">Please contact support.</p>
+          
+          {/* Add Home button */}
+          <div className="mt-8">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2"
+            >
+              <Home size={18} />
+              Back to Home
+            </Button>
+          </div>
         </div>
       </div>
     );

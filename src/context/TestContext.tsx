@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserResponse, UserResult, Strength, CategoryResult, StrengthCategory } from '../models/strength';
 import { questions, strengths, getCategoryDisplayName } from '../data/strengths';
 import { getAllTestResults } from '@/lib/test-service';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 // Define a type for the test history items
 export interface TestHistoryItem {
@@ -25,10 +25,19 @@ interface TestContextType {
   getCategoryName: (category: StrengthCategory) => string;
   getCurrentCategory: () => string;
   questions: typeof questions;
-  // Add the missing properties for test history
   testHistory: TestHistoryItem[] | null;
   fetchTestHistory: () => Promise<void>;
   loadingHistory: boolean;
+  
+  // Add the missing properties
+  selectedOptions: Record<number, number>;
+  startTest: (totalQuestions: number) => void;
+  submitAnswer: (questionIndex: number, optionIndex: number) => void;
+  moveToNextQuestion: () => void;
+  isTestFinished: boolean;
+  submitTest: () => Promise<void>;
+  isLoading: boolean;
+  error: any;
 }
 
 const TestContext = createContext<TestContextType | undefined>(undefined);
@@ -48,12 +57,19 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [categoryResults, setCategoryResults] = useState<CategoryResult[] | null>(null);
   const [testHistory, setTestHistory] = useState<TestHistoryItem[] | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  
+  // Add the missing state variables
+  const [selectedOptions, setSelectedOptions] = useState<Record<number, number>>({});
+  const [isTestFinished, setIsTestFinished] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<any>(null);
 
   // Load saved responses from localStorage on initial render
   useEffect(() => {
     const storedResults = localStorage.getItem('inuka_results');
     const storedCategoryResults = localStorage.getItem('inuka_category_results');
     const storedResponses = localStorage.getItem('inuka_responses');
+    const storedSelectedOptions = localStorage.getItem('inuka_selected_options');
     
     if (storedResults) {
       setResults(JSON.parse(storedResults));
@@ -66,7 +82,50 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (storedResponses) {
       setResponses(JSON.parse(storedResponses));
     }
+    
+    if (storedSelectedOptions) {
+      setSelectedOptions(JSON.parse(storedSelectedOptions));
+    }
   }, []);
+
+  const startTest = (totalQuestions: number) => {
+    setCurrentQuestionIndex(0);
+    setSelectedOptions({});
+    setIsTestFinished(false);
+  };
+
+  const submitAnswer = (questionIndex: number, optionIndex: number) => {
+    // Update selected options
+    const newSelectedOptions = { ...selectedOptions, [questionIndex]: optionIndex };
+    setSelectedOptions(newSelectedOptions);
+    localStorage.setItem('inuka_selected_options', JSON.stringify(newSelectedOptions));
+    
+    // Get the question and update responses
+    const question = questions[questionIndex];
+    if (question) {
+      addResponse({
+        questionId: question.id,
+        score: optionIndex
+      });
+    }
+  };
+
+  const moveToNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      setIsTestFinished(true);
+    }
+  };
+
+  const submitTest = async () => {
+    try {
+      calculateResults();
+      return Promise.resolve();
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  };
 
   const addResponse = (response: UserResponse) => {
     // Check if we're updating an existing response
@@ -84,11 +143,6 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Save to localStorage
     localStorage.setItem('inuka_responses', JSON.stringify(newResponses));
-    
-    // Move to the next question if available
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
   };
 
   const calculateResults = () => {
@@ -173,9 +227,12 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentQuestionIndex(0);
     setResults(null);
     setCategoryResults(null);
+    setSelectedOptions({});
+    setIsTestFinished(false);
     localStorage.removeItem('inuka_results');
     localStorage.removeItem('inuka_category_results');
     localStorage.removeItem('inuka_responses');
+    localStorage.removeItem('inuka_selected_options');
   };
 
   const getCategoryName = (category: StrengthCategory): string => {
@@ -209,11 +266,8 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setTestHistory(allTestResults);
     } catch (error) {
       console.error("Failed to fetch test history:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load your test history.",
-        variant: "destructive",
-      });
+      // toast was removed because useToast is a hook and can't be used directly in this function
+      setError(error);
     } finally {
       setLoadingHistory(false);
     }
@@ -232,10 +286,18 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
         getCategoryName,
         getCurrentCategory,
         questions,
-        // Add the missing properties to the context value
         testHistory,
         fetchTestHistory,
-        loadingHistory
+        loadingHistory,
+        // Add the new properties to the context value
+        selectedOptions,
+        startTest,
+        submitAnswer,
+        moveToNextQuestion,
+        isTestFinished,
+        submitTest,
+        isLoading,
+        error
       }}
     >
       {children}
