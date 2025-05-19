@@ -39,6 +39,8 @@ const Test = () => {
   }, [user, navigate]);
 
   const handleNext = () => {
+    if (!currentQuestion) return;
+    
     addResponse({
       questionId: currentQuestion.id,
       score: selectedValue

@@ -1,10 +1,18 @@
-import React, { createContext, useContext, useState } from 'react';
+
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserResponse, UserResult, Strength, CategoryResult, StrengthCategory } from '../models/strength';
 import { questions, strengths, getCategoryDisplayName } from '../data/strengths';
+
+interface TestHistory {
+  id: string;
+  testDate: string;
+  results: UserResult;
+}
 
 interface TestContextType {
   responses: UserResponse[];
   currentQuestionIndex: number;
+  questions: typeof questions;
   addResponse: (response: UserResponse) => void;
   calculateResults: () => UserResult;
   resetTest: () => void;
@@ -12,6 +20,9 @@ interface TestContextType {
   categoryResults: CategoryResult[] | null;
   getCategoryName: (category: StrengthCategory) => string;
   getCurrentCategory: () => string;
+  testHistory: TestHistory[];
+  fetchTestHistory: () => void;
+  loadingHistory: boolean;
 }
 
 const TestContext = createContext<TestContextType | undefined>(undefined);
@@ -29,6 +40,8 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [results, setResults] = useState<UserResult | null>(null);
   const [categoryResults, setCategoryResults] = useState<CategoryResult[] | null>(null);
+  const [testHistory, setTestHistory] = useState<TestHistory[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   const addResponse = (response: UserResponse) => {
     // Check if we're updating an existing response
@@ -124,12 +137,58 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setResults(result);
     setCategoryResults(categoryResults);
     
-    // In a real app, you'd save this to a database
+    // Save the test result to localStorage with a timestamp
+    const testId = `test_${Date.now()}`;
+    const testResult = {
+      id: testId,
+      testDate: new Date().toISOString(),
+      results: result
+    };
+    
+    // Save current test to localStorage
     localStorage.setItem('inuka_results', JSON.stringify(result));
     localStorage.setItem('inuka_category_results', JSON.stringify(categoryResults));
     
+    // Add to test history
+    const existingHistory = localStorage.getItem('inuka_test_history');
+    let history: TestHistory[] = [];
+    
+    if (existingHistory) {
+      try {
+        history = JSON.parse(existingHistory);
+      } catch (e) {
+        console.error('Error parsing test history:', e);
+      }
+    }
+    
+    history.push(testResult);
+    localStorage.setItem('inuka_test_history', JSON.stringify(history));
+    
+    // Update state with new history
+    setTestHistory(history);
+    
     return result;
   };
+
+  const fetchTestHistory = () => {
+    setLoadingHistory(true);
+    try {
+      const existingHistory = localStorage.getItem('inuka_test_history');
+      if (existingHistory) {
+        const history = JSON.parse(existingHistory);
+        setTestHistory(history);
+      }
+    } catch (e) {
+      console.error('Error fetching test history:', e);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  // Load test history on mount
+  useEffect(() => {
+    fetchTestHistory();
+  }, []);
 
   const resetTest = () => {
     setResponses([]);
@@ -160,13 +219,17 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{ 
         responses, 
         currentQuestionIndex, 
+        questions,
         addResponse, 
         calculateResults,
         resetTest,
         results,
         categoryResults,
         getCategoryName,
-        getCurrentCategory
+        getCurrentCategory,
+        testHistory,
+        fetchTestHistory,
+        loadingHistory
       }}
     >
       {children}
