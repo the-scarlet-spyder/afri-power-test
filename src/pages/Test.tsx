@@ -25,8 +25,8 @@ const Test = () => {
     getCurrentCategory
   } = useTest();
   
-  // Temporarily use these until we update the context
-  const [selectedValue, setSelectedValue] = useState<number>(3);
+  // Update default value to 4 (neutral in a 7-point scale)
+  const [selectedValue, setSelectedValue] = useState<number>(4);
   const currentQuestion = questions?.[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / (questions?.length || 1)) * 100;
   const currentCategory = getCurrentCategory();
@@ -44,7 +44,8 @@ const Test = () => {
       score: selectedValue
     });
     
-    setSelectedValue(3); // Reset to neutral for next question
+    // Reset to neutral (4) for next question
+    setSelectedValue(4);
     
     if (currentQuestionIndex >= questions.length - 1) {
       // Test is complete
@@ -114,32 +115,40 @@ const Test = () => {
                     {currentQuestion?.text}
                   </h2>
                   
-                  <div className="space-y-10 px-4 py-4">
+                  <div className="space-y-6 px-4 py-4">
                     <RadioGroup 
-                      defaultValue="3" 
+                      defaultValue="4" 
                       className="mt-8"
                       value={selectedValue.toString()}
                       onValueChange={(value) => setSelectedValue(parseInt(value))}
                     >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="1" id="r1" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r1" className="cursor-pointer">Totally disagree</Label>
+                      <div className="grid grid-cols-7 gap-1 mb-2">
+                        <div className="text-center text-xs text-gray-500">Strongly disagree</div>
+                        <div className="col-span-5"></div>
+                        <div className="text-center text-xs text-gray-500">Strongly agree</div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="2" id="r2" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r2" className="cursor-pointer">Disagree</Label>
+                      
+                      <div className="grid grid-cols-7 gap-1">
+                        {[1, 2, 3, 4, 5, 6, 7].map((value) => (
+                          <div key={value} className="flex flex-col items-center">
+                            <RadioGroupItem 
+                              value={value.toString()} 
+                              id={`r${value}`} 
+                              className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" 
+                            />
+                            <Label htmlFor={`r${value}`} className="mt-2 text-sm">{value}</Label>
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="3" id="r3" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r3" className="cursor-pointer">Neutral</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="4" id="r4" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r4" className="cursor-pointer">Agree</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="5" id="r5" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r5" className="cursor-pointer">Totally agree</Label>
+                      
+                      <div className="grid grid-cols-7 gap-1 mt-4">
+                        <div className="text-center text-xs">Completely<br />disagree</div>
+                        <div className="text-center text-xs">Disagree</div>
+                        <div className="text-center text-xs">Somewhat<br />disagree</div>
+                        <div className="text-center text-xs">Neutral</div>
+                        <div className="text-center text-xs">Somewhat<br />agree</div>
+                        <div className="text-center text-xs">Agree</div>
+                        <div className="text-center text-xs">Completely<br />agree</div>
                       </div>
                     </RadioGroup>
                   </div>

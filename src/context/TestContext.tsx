@@ -1,18 +1,6 @@
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { UserResponse, UserResult, Strength, CategoryResult, StrengthCategory } from '../models/strength';
 import { questions, strengths, getCategoryDisplayName } from '../data/strengths';
-import { getAllTestResults } from '@/lib/test-service';
-import { toast } from '@/components/ui/use-toast';
-
-// Define a type for the test history items
-export interface TestHistoryItem {
-  id: string;
-  responses: UserResponse[];
-  results: UserResult;
-  categoryResults: CategoryResult[];
-  testDate: string;
-}
 
 interface TestContextType {
   responses: UserResponse[];
@@ -24,11 +12,6 @@ interface TestContextType {
   categoryResults: CategoryResult[] | null;
   getCategoryName: (category: StrengthCategory) => string;
   getCurrentCategory: () => string;
-  questions: typeof questions;
-  // Add the missing properties for test history
-  testHistory: TestHistoryItem[] | null;
-  fetchTestHistory: () => Promise<void>;
-  loadingHistory: boolean;
 }
 
 const TestContext = createContext<TestContextType | undefined>(undefined);
@@ -46,44 +29,18 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [results, setResults] = useState<UserResult | null>(null);
   const [categoryResults, setCategoryResults] = useState<CategoryResult[] | null>(null);
-  const [testHistory, setTestHistory] = useState<TestHistoryItem[] | null>(null);
-  const [loadingHistory, setLoadingHistory] = useState(false);
-
-  // Load saved responses from localStorage on initial render
-  useEffect(() => {
-    const storedResults = localStorage.getItem('inuka_results');
-    const storedCategoryResults = localStorage.getItem('inuka_category_results');
-    const storedResponses = localStorage.getItem('inuka_responses');
-    
-    if (storedResults) {
-      setResults(JSON.parse(storedResults));
-    }
-    
-    if (storedCategoryResults) {
-      setCategoryResults(JSON.parse(storedCategoryResults));
-    }
-    
-    if (storedResponses) {
-      setResponses(JSON.parse(storedResponses));
-    }
-  }, []);
 
   const addResponse = (response: UserResponse) => {
     // Check if we're updating an existing response
     const existingIndex = responses.findIndex(r => r.questionId === response.questionId);
     
-    let newResponses: UserResponse[];
     if (existingIndex >= 0) {
-      newResponses = [...responses];
+      const newResponses = [...responses];
       newResponses[existingIndex] = response;
+      setResponses(newResponses);
     } else {
-      newResponses = [...responses, response];
+      setResponses([...responses, response]);
     }
-    
-    setResponses(newResponses);
-    
-    // Save to localStorage
-    localStorage.setItem('inuka_responses', JSON.stringify(newResponses));
     
     // Move to the next question if available
     if (currentQuestionIndex < questions.length - 1) {
@@ -106,7 +63,13 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (question) {
         const scoreData = strengthScores.get(question.strengthId);
         if (scoreData) {
-          scoreData.total += response.score;
+          // Normalize 7-point scale score to a 0-1 range for consistent results
+          // 1 becomes 0, 4 becomes 0.5, 7 becomes 1
+          const normalizedScore = (response.score - 1) / 6;
+          // Scale to original 1-5 range for compatibility with existing results display
+          const scaledScore = normalizedScore * 4 + 1;
+          
+          scoreData.total += scaledScore;
           scoreData.count += 1;
         }
       }
@@ -161,7 +124,7 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setResults(result);
     setCategoryResults(categoryResults);
     
-    // Save to localStorage
+    // In a real app, you'd save this to a database
     localStorage.setItem('inuka_results', JSON.stringify(result));
     localStorage.setItem('inuka_category_results', JSON.stringify(categoryResults));
     
@@ -175,7 +138,6 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCategoryResults(null);
     localStorage.removeItem('inuka_results');
     localStorage.removeItem('inuka_category_results');
-    localStorage.removeItem('inuka_responses');
   };
 
   const getCategoryName = (category: StrengthCategory): string => {
@@ -193,32 +155,6 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return "";
   };
 
-  // Add the fetchTestHistory function
-  const fetchTestHistory = async () => {
-    try {
-      setLoadingHistory(true);
-      const user = JSON.parse(localStorage.getItem('inuka_user') || '{}');
-      
-      if (!user || !user.id) {
-        console.error("No user found in localStorage");
-        return;
-      }
-
-      const allTestResults = await getAllTestResults(user.id);
-      console.log("Fetched test history:", allTestResults);
-      setTestHistory(allTestResults);
-    } catch (error) {
-      console.error("Failed to fetch test history:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load your test history.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingHistory(false);
-    }
-  };
-
   return (
     <TestContext.Provider 
       value={{ 
@@ -230,12 +166,7 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
         results,
         categoryResults,
         getCategoryName,
-        getCurrentCategory,
-        questions,
-        // Add the missing properties to the context value
-        testHistory,
-        fetchTestHistory,
-        loadingHistory
+        getCurrentCategory
       }}
     >
       {children}
