@@ -8,8 +8,6 @@ import Footer from '@/components/Footer';
 import AccessCodeVerification from '@/components/AccessCodeVerification';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { Home } from 'lucide-react';
 
 const AccessCodePage = () => {
   const navigate = useNavigate();
@@ -88,17 +86,6 @@ const AccessCodePage = () => {
             <Card className="shadow-lg border-none">
               <AccessCodeVerification />
             </Card>
-            
-            <div className="mt-6 text-center">
-              <Button
-                variant="outline"
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2"
-              >
-                <Home size={18} />
-                Back to Home
-              </Button>
-            </div>
           </div>
         </div>
       </main>
