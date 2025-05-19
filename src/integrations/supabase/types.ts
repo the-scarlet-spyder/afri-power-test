@@ -109,6 +109,7 @@ export type Database = {
       }
       test_results: {
         Row: {
+          access_code_id: string | null
           created_at: string | null
           id: string
           responses: Json
@@ -117,6 +118,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          access_code_id?: string | null
           created_at?: string | null
           id?: string
           responses: Json
@@ -125,6 +127,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          access_code_id?: string | null
           created_at?: string | null
           id?: string
           responses?: Json
@@ -132,13 +135,25 @@ export type Database = {
           test_date?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "test_results_access_code_id_fkey"
+            columns: ["access_code_id"]
+            isOneToOne: false
+            referencedRelation: "access_codes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      can_take_test_with_current_code: {
+        Args: { _user_id: string }
+        Returns: Json
+      }
       create_access_code: {
         Args: { _code: string; _created_by: string; _batch_name: string }
         Returns: undefined
