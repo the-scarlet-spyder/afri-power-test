@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -158,7 +157,7 @@ const Profile = () => {
               <Card className="mb-8 p-6 text-center">
                 <p>You haven't taken any tests yet.</p>
                 <Button 
-                  onClick={() => navigate('/test')}
+                  onClick={() => navigate('/access-code')}
                   className="bg-inuka-crimson hover:bg-opacity-90 mt-4"
                 >
                   Take the Test Now
@@ -217,7 +216,7 @@ const Profile = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 mt-6">
               <Button 
-                onClick={() => navigate('/test')}
+                onClick={() => navigate('/access-code')}
                 className="bg-inuka-crimson hover:bg-opacity-90"
               >
                 Take New Test

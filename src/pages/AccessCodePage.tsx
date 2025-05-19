@@ -8,6 +8,8 @@ import Footer from '@/components/Footer';
 import AccessCodeVerification from '@/components/AccessCodeVerification';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Home } from 'lucide-react';
 
 const AccessCodePage = () => {
   const navigate = useNavigate();
@@ -37,7 +39,7 @@ const AccessCodePage = () => {
           // If user already has a valid code, redirect to test page
           if (data) {
             console.log("User already has valid code, redirecting to test");
-            navigate('/test', { replace: true });
+            navigate('/test');
           }
         }
       } catch (err) {
@@ -86,6 +88,17 @@ const AccessCodePage = () => {
             <Card className="shadow-lg border-none">
               <AccessCodeVerification />
             </Card>
+          </div>
+
+          <div className="flex justify-center mt-6">
+            <Button
+              onClick={() => navigate('/')}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Home size={16} />
+              Back to Home
+            </Button>
           </div>
         </div>
       </main>

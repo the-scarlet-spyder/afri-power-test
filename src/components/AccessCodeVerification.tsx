@@ -58,7 +58,7 @@ const AccessCodeVerification = () => {
         // Force a small delay before navigation to ensure the toast is visible
         setTimeout(() => {
           console.log("Redirecting to /test after successful verification");
-          navigate('/test', { replace: true });
+          navigate('/test');
         }, 500);
       } else {
         toast({
