@@ -12,7 +12,8 @@ import { getUserCertificates } from '@/lib/test-service';
 import { Certificate } from '@/lib/database.types';
 import { toast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, FileDown } from 'lucide-react';
+import ProfileCertificateDownload from '@/components/results/ProfileCertificateDownload';
 
 const Profile = () => {
   const { user, logout } = useAuth();
@@ -191,13 +192,18 @@ const Profile = () => {
                         <span className={`h-2 w-2 rounded-full ${cert.verified ? 'bg-green-500' : 'bg-yellow-500'} mr-2`}></span>
                         <span>{cert.verified ? 'Verified' : 'Pending Verification'}</span>
                       </p>
-                      <Button 
-                        onClick={() => navigate(`/certificate/${cert.certificate_id}`)}
-                        className="bg-inuka-gold text-inuka-charcoal hover:bg-opacity-90 mt-3 w-full"
-                        size="sm"
-                      >
-                        View Certificate
-                      </Button>
+                      
+                      <div className="flex flex-col gap-2 mt-3">
+                        <Button 
+                          onClick={() => navigate(`/certificate/${cert.certificate_id}`)}
+                          className="bg-inuka-gold text-inuka-charcoal hover:bg-opacity-90 w-full"
+                          size="sm"
+                        >
+                          View Certificate
+                        </Button>
+                        
+                        <ProfileCertificateDownload certificateId={cert.certificate_id} />
+                      </div>
                     </CardContent>
                   </Card>
                 ))}

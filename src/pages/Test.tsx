@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { canTakeTest } from '@/lib/test-service';
 import { Skeleton } from "@/components/ui/skeleton";
 import AccessCodeVerification from '@/components/AccessCodeVerification';
 import Navbar from '@/components/Navbar';
@@ -14,12 +15,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const Test = () => {
   const [checkingCode, setCheckingCode] = useState(true);
   const [hasValidCode, setHasValidCode] = useState(false);
+  const [canTakeNewTest, setCanTakeNewTest] = useState(true);
+  const [eligibilityMessage, setEligibilityMessage] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -38,34 +41,54 @@ const Test = () => {
   const currentCategory = getCurrentCategory();
   
   useEffect(() => {
-    const checkAccessCode = async () => {
+    const checkUserEligibility = async () => {
       if (!user) return;
       
+      setCheckingCode(true);
+      
       try {
-        const { data, error } = await supabase.rpc('has_valid_access_code', {
+        // First check if user has a valid access code
+        const { data: hasCode, error: codeError } = await supabase.rpc('has_valid_access_code', {
           _user_id: user.id
         });
         
-        if (error) {
-          console.error('Error checking access code:', error);
+        if (codeError) {
+          console.error('Error checking access code:', codeError);
           setHasValidCode(false);
-        } else {
-          setHasValidCode(data);
-          
-          // If user doesn't have a valid code, redirect to access code page
-          if (!data) {
-            navigate('/access-code');
-          }
+          return;
+        }
+        
+        setHasValidCode(hasCode);
+        
+        // If user doesn't have a valid code, redirect to access code page
+        if (!hasCode) {
+          navigate('/access-code');
+          return;
+        }
+        
+        // If user has a valid code, check if they can take a test with it
+        const eligibility = await canTakeTest(user.id);
+        setCanTakeNewTest(eligibility.canTake);
+        setEligibilityMessage(eligibility.message);
+        
+        if (!eligibility.canTake) {
+          toast({
+            title: "New Access Code Required",
+            description: eligibility.message,
+            variant: "destructive",
+          });
         }
       } catch (err) {
-        console.error('Error checking access code:', err);
+        console.error('Error checking eligibility:', err);
         setHasValidCode(false);
+        setCanTakeNewTest(false);
+        setEligibilityMessage("There was an error checking your eligibility. Please try again later.");
       } finally {
         setCheckingCode(false);
       }
     };
     
-    checkAccessCode();
+    checkUserEligibility();
   }, [user, navigate]);
   
   // Show loading while checking access code
@@ -82,6 +105,47 @@ const Test = () => {
   // If no valid code, show access code verification
   if (!hasValidCode) {
     return <AccessCodeVerification />;
+  }
+  
+  // If user has a valid code but has already taken a test with it
+  if (!canTakeNewTest) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        
+        <main className="flex-grow flex items-center justify-center py-12">
+          <div className="inuka-container">
+            <div className="max-w-lg mx-auto text-center">
+              <div className="mb-6">
+                <AlertCircle className="h-16 w-16 mx-auto text-amber-500" />
+              </div>
+              <h1 className="text-3xl font-bold text-inuka-crimson mb-4 font-poppins">
+                New Access Code Required
+              </h1>
+              <p className="mb-6 text-lg">
+                {eligibilityMessage}
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <Button 
+                  onClick={() => navigate('/access-code')}
+                  className="bg-inuka-crimson hover:bg-opacity-90"
+                >
+                  Enter New Access Code
+                </Button>
+                <Button
+                  onClick={() => navigate('/profile')}
+                  variant="outline"
+                >
+                  View Your Profile
+                </Button>
+              </div>
+            </div>
+          </div>
+        </main>
+        
+        <Footer />
+      </div>
+    );
   }
 
   const handleNext = () => {
