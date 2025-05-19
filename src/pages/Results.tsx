@@ -13,7 +13,7 @@ import NextSteps from '@/components/results/NextSteps';
 import CertificateDownload from '@/components/results/CertificateDownload';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
-import { saveTestResults, saveCertificate } from '@/lib/test-service';
+import { saveTestResults, saveCertificate, canTakeTest } from '@/lib/test-service';
 
 // Helper functions for category styling that will be passed to child components
 const getCategoryCardClass = (category: string): string => {
@@ -74,9 +74,13 @@ const Results = () => {
     const storedName = localStorage.getItem('user_name');
     if (storedName) {
       setUserName(storedName);
-    } else if (user?.user_metadata?.name) {
-      setUserName(user.user_metadata.name);
-      localStorage.setItem('user_name', user.user_metadata.name);
+    } else if (user?.name) { // Changed from user?.user_metadata?.name to user?.name
+      setUserName(user.name);
+      localStorage.setItem('user_name', user.name);
+    } else if (user?.email) { // Adding a fallback to email if name is not available
+      const nameFromEmail = user.email.split('@')[0];
+      setUserName(nameFromEmail);
+      localStorage.setItem('user_name', nameFromEmail);
     }
   }, [results, navigate, user]);
   
