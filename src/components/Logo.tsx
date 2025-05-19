@@ -40,10 +40,10 @@ const Logo: React.FC<LogoProps> = ({ size = 'medium' }) => {
         <div className="absolute inset-0 bg-inuka-terracotta rounded-full opacity-20"></div>
         <div className="absolute inset-[3px] bg-inuka-terracotta rounded-full"></div>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className={`text-white font-bold ${getFontSize()}`}>I</span>
+          <span className={`text-white font-bold ${getFontSize()}`}>S</span>
         </div>
       </div>
-      <span className={`font-bold text-inuka-brown ${getTextSize()}`}>Inuka</span>
+      <span className={`font-bold text-inuka-brown ${getTextSize()}`}>Strengths Test</span>
     </div>
   );
 };
