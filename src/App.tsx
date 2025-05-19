@@ -16,7 +16,6 @@ import Test from "./pages/Test";
 import Results from "./pages/Results";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
-import AccessCodePage from "./pages/AccessCodePage";
 import Admin from "./pages/Admin";
 import AdminCodesPage from "./pages/AdminCodesPage";
 
@@ -38,7 +37,6 @@ const App = () => (
               <Route path="/test" element={<Test />} />
               <Route path="/results" element={<Results />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/access-code" element={<AccessCodePage />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin/codes" element={<AdminCodesPage />} />
               <Route path="*" element={<NotFound />} />

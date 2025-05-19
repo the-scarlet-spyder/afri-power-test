@@ -1,10 +1,7 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { canTakeTest } from '@/lib/test-service';
-import { Skeleton } from "@/components/ui/skeleton";
-import AccessCodeVerification from '@/components/AccessCodeVerification';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useTest } from '@/context/TestContext';
@@ -14,19 +11,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const Test = () => {
-  const [checkingCode, setCheckingCode] = useState(true);
-  const [hasValidCode, setHasValidCode] = useState(false);
-  const [canTakeNewTest, setCanTakeNewTest] = useState(true);
-  const [eligibilityMessage, setEligibilityMessage] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const { 
-    responses, 
     currentQuestionIndex,
     questions,
     addResponse,
@@ -34,100 +25,18 @@ const Test = () => {
     getCurrentCategory
   } = useTest();
   
-  const [selectedValue, setSelectedValue] = useState<number>(4);
+  // Temporarily use these until we update the context
+  const [selectedValue, setSelectedValue] = useState<number>(3);
   const currentQuestion = questions?.[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / (questions?.length || 1)) * 100;
   const currentCategory = getCurrentCategory();
   
-  useEffect(() => {
-    const checkUserEligibility = async () => {
-      if (!user) return;
-      
-      setCheckingCode(true);
-      
-      try {
-        // Check if user can take a test with their current access code
-        const eligibility = await canTakeTest(user.id);
-        setHasValidCode(eligibility.can_take !== undefined ? eligibility.can_take : false);
-        setCanTakeNewTest(eligibility.can_take !== undefined ? eligibility.can_take : false);
-        setEligibilityMessage(eligibility.message || "");
-        
-        if (!eligibility.can_take) {
-          toast({
-            title: "New Access Code Required",
-            description: eligibility.message || "You need a new access code to take a test.",
-            variant: "destructive",
-          });
-        }
-      } catch (err) {
-        console.error('Error checking eligibility:', err);
-        setHasValidCode(false);
-        setCanTakeNewTest(false);
-        setEligibilityMessage("There was an error checking your eligibility. Please try again later.");
-      } finally {
-        setCheckingCode(false);
-      }
-    };
-    
-    checkUserEligibility();
-  }, [user, navigate, toast]);
-  
-  // Show loading while checking access code
-  if (checkingCode) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
-        <Skeleton className="h-12 w-full max-w-md mb-4" />
-        <Skeleton className="h-8 w-3/4 max-w-md mb-4" />
-        <Skeleton className="h-64 w-full max-w-md" />
-      </div>
-    );
-  }
-  
-  // If no valid code, show access code verification
-  if (!hasValidCode) {
-    return <AccessCodeVerification />;
-  }
-  
-  // If user has a valid code but has already taken a test with it
-  if (!canTakeNewTest) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        
-        <main className="flex-grow flex items-center justify-center py-12">
-          <div className="inuka-container">
-            <div className="max-w-lg mx-auto text-center">
-              <div className="mb-6">
-                <AlertCircle className="h-16 w-16 mx-auto text-amber-500" />
-              </div>
-              <h1 className="text-3xl font-bold text-inuka-crimson mb-4 font-poppins">
-                New Access Code Required
-              </h1>
-              <p className="mb-6 text-lg">
-                {eligibilityMessage}
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Button 
-                  onClick={() => navigate('/access-code')}
-                  className="bg-inuka-crimson hover:bg-opacity-90"
-                >
-                  Enter New Access Code
-                </Button>
-                <Button
-                  onClick={() => navigate('/profile')}
-                  variant="outline"
-                >
-                  View Your Profile
-                </Button>
-              </div>
-            </div>
-          </div>
-        </main>
-        
-        <Footer />
-      </div>
-    );
-  }
+  // If user is not authenticated, redirect to login
+  React.useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   const handleNext = () => {
     addResponse({
@@ -135,7 +44,7 @@ const Test = () => {
       score: selectedValue
     });
     
-    setSelectedValue(4); // Reset to neutral for next question
+    setSelectedValue(3); // Reset to neutral for next question
     
     if (currentQuestionIndex >= questions.length - 1) {
       // Test is complete
@@ -163,12 +72,30 @@ const Test = () => {
 
   const { badgeClass, progressClass } = getCategoryStyles();
   
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#F9F9F9] font-inter">
+        <Navbar />
+        <main className="flex-grow py-12">
+          <div className="container mx-auto px-4">
+            <Card className="shadow-lg border-none max-w-md mx-auto">
+              <CardContent className="p-6">
+                <p className="text-center py-8">Loading questions...</p>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+  
   return (
     <div className="min-h-screen flex flex-col bg-[#F9F9F9] font-inter">
       <Navbar />
       
       <main className="flex-grow py-12">
-        <div className="inuka-container">
+        <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
             <Card className="shadow-lg border-none">
               <CardContent className="pt-6">
@@ -187,45 +114,32 @@ const Test = () => {
                     {currentQuestion?.text}
                   </h2>
                   
-                  <div className="space-y-6 px-4 py-4">
-                    <div className="flex justify-between text-sm text-gray-500 mb-2">
-                      <span>Strongly Disagree</span>
-                      <span>Neutral</span>
-                      <span>Strongly Agree</span>
-                    </div>
-                    
+                  <div className="space-y-10 px-4 py-4">
                     <RadioGroup 
-                      defaultValue="4" 
-                      className="grid grid-cols-7 gap-2"
+                      defaultValue="3" 
+                      className="mt-8"
+                      value={selectedValue.toString()}
                       onValueChange={(value) => setSelectedValue(parseInt(value))}
                     >
-                      <div className="flex flex-col items-center">
+                      <div className="flex items-center space-x-2">
                         <RadioGroupItem value="1" id="r1" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r1" className="mt-1 text-xs">1</Label>
+                        <Label htmlFor="r1" className="cursor-pointer">Totally disagree</Label>
                       </div>
-                      <div className="flex flex-col items-center">
+                      <div className="flex items-center space-x-2">
                         <RadioGroupItem value="2" id="r2" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r2" className="mt-1 text-xs">2</Label>
+                        <Label htmlFor="r2" className="cursor-pointer">Disagree</Label>
                       </div>
-                      <div className="flex flex-col items-center">
+                      <div className="flex items-center space-x-2">
                         <RadioGroupItem value="3" id="r3" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r3" className="mt-1 text-xs">3</Label>
+                        <Label htmlFor="r3" className="cursor-pointer">Neutral</Label>
                       </div>
-                      <div className="flex flex-col items-center">
+                      <div className="flex items-center space-x-2">
                         <RadioGroupItem value="4" id="r4" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r4" className="mt-1 text-xs">4</Label>
+                        <Label htmlFor="r4" className="cursor-pointer">Agree</Label>
                       </div>
-                      <div className="flex flex-col items-center">
+                      <div className="flex items-center space-x-2">
                         <RadioGroupItem value="5" id="r5" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r5" className="mt-1 text-xs">5</Label>
-                      </div>
-                      <div className="flex flex-col items-center">
-                        <RadioGroupItem value="6" id="r6" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r6" className="mt-1 text-xs">6</Label>
-                      </div>
-                      <div className="flex flex-col items-center">
-                        <RadioGroupItem value="7" id="r7" className="peer h-5 w-5 border border-gray-300 text-inuka-crimson focus:ring-0 focus:ring-offset-0" />
-                        <Label htmlFor="r7" className="mt-1 text-xs">7</Label>
+                        <Label htmlFor="r5" className="cursor-pointer">Totally agree</Label>
                       </div>
                     </RadioGroup>
                   </div>
