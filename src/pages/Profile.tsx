@@ -217,7 +217,7 @@ const Profile = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 mt-6">
               <Button 
-                onClick={() => navigate('/test')}
+                onClick={() => navigate('/access-code')}
                 className="bg-inuka-crimson hover:bg-opacity-90"
               >
                 Take New Test

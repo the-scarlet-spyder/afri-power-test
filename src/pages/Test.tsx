@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -7,7 +6,6 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Question from '@/components/Question';
 import { Button } from '@/components/ui/button';
-import { Home } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { canTakeTest } from '@/lib/test-service';
 
@@ -37,6 +35,12 @@ const Test = () => {
         try {
           const canTake = await canTakeTest(user.id);
           setCanStart(canTake);
+          
+          // If user doesn't have access to take the test, redirect to access code page
+          if (!canTake) {
+            navigate('/access-code');
+            return;
+          }
         } catch (err) {
           console.error("Error checking test eligibility:", err);
           toast({
@@ -44,11 +48,17 @@ const Test = () => {
             description: "Failed to check test eligibility. Please try again later.",
             variant: "destructive",
           });
+          // On error, redirect to access code page to be safe
+          navigate('/access-code');
+          return;
         } finally {
           setCheckingEligibility(false);
         }
       } else {
         setCheckingEligibility(false);
+        // If no user, redirect to login
+        navigate('/login');
+        return;
       }
     };
 
@@ -58,7 +68,7 @@ const Test = () => {
     if (questions && questions.length > 0) {
       startTest(questions.length);
     }
-  }, [user, questions, startTest, toast]);
+  }, [user, questions, startTest, toast, navigate]);
 
   const handleAnswerSelection = (optionIndex: number) => {
     if (questions) {
@@ -90,44 +100,16 @@ const Test = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-inuka-crimson mb-4">Checking your eligibility...</h2>
           <p className="text-gray-600">Please wait while we verify if you can take the test.</p>
-          
-          {/* Add Home button */}
-          <div className="mt-8">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2"
-            >
-              <Home size={18} />
-              Back to Home
-            </Button>
-          </div>
         </div>
       </div>
     );
   }
 
+  // This condition should never be reached due to the redirection in useEffect,
+  // but keeping it as a fallback
   if (!canStart) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F9F9F9]">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-inuka-crimson mb-4">Sorry, you are not eligible to take the test at this time.</h2>
-          <p className="text-gray-600">Please contact support for more information.</p>
-          
-          {/* Add Home button */}
-          <div className="mt-8">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2"
-            >
-              <Home size={18} />
-              Back to Home
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    navigate('/access-code');
+    return null;
   }
 
   if (isLoading) {
@@ -136,18 +118,6 @@ const Test = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-inuka-crimson mb-4">Loading questions...</h2>
           <p className="text-gray-600">Please wait while we fetch the questions for you.</p>
-          
-          {/* Add Home button */}
-          <div className="mt-8">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2"
-            >
-              <Home size={18} />
-              Back to Home
-            </Button>
-          </div>
         </div>
       </div>
     );
@@ -159,18 +129,6 @@ const Test = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-inuka-crimson mb-4">Oops!</h2>
           <p className="text-gray-600">An error occurred while loading the questions. Please try again later.</p>
-          
-          {/* Add Home button */}
-          <div className="mt-8">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2"
-            >
-              <Home size={18} />
-              Back to Home
-            </Button>
-          </div>
         </div>
       </div>
     );
@@ -182,18 +140,6 @@ const Test = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-inuka-crimson mb-4">No questions available</h2>
           <p className="text-gray-600">Please contact support.</p>
-          
-          {/* Add Home button */}
-          <div className="mt-8">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2"
-            >
-              <Home size={18} />
-              Back to Home
-            </Button>
-          </div>
         </div>
       </div>
     );
@@ -225,18 +171,6 @@ const Test = () => {
             ) : (
               <Button onClick={handleSubmit}>Submit</Button>
             )}
-          </div>
-          
-          {/* Add Home button at the bottom of the test page */}
-          <div className="mt-8 text-center">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2"
-            >
-              <Home size={18} />
-              Back to Home
-            </Button>
           </div>
         </div>
       </main>
