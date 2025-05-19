@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase';
 import { UserResponse, UserResult, CategoryResult } from '@/models/strength';
 import { toast } from '@/components/ui/use-toast';
@@ -51,6 +50,19 @@ export const saveTestResults = async (
     }
 
     console.log("Test results saved successfully, ID:", data?.id);
+    
+    // If access code exists, mark as used in a separate operation
+    if (accessCode) {
+      const { error: updateError } = await supabase
+        .from('access_codes')
+        .update({ used: true, used_at: new Date().toISOString() })
+        .eq('id', accessCode.id);
+        
+      if (updateError) {
+        console.error('Error updating access code:', updateError);
+      }
+    }
+    
     return data;
   } catch (error) {
     console.error('Error saving test results:', error);
@@ -66,65 +78,18 @@ export const saveTestResults = async (
 export const canTakeTest = async (userId: string) => {
   console.log("Checking if user can take a test:", userId);
   try {
-    // Check if user has a valid access code
-    const { data: hasCode, error: codeError } = await supabase.rpc('has_valid_access_code', {
+    // Use the database function directly
+    const { data, error } = await supabase.rpc('can_take_test_with_current_code', {
       _user_id: userId
     });
 
-    if (codeError) {
-      console.error('Error checking access code:', codeError);
-      throw codeError;
+    if (error) {
+      console.error('Error checking test eligibility:', error);
+      throw error;
     }
 
-    if (!hasCode) {
-      return { 
-        canTake: false, 
-        message: "You don't have a valid access code. Please enter a valid code to take the test." 
-      };
-    }
-
-    // Check if the user has already taken a test with this access code
-    const { data: accessCode, error: accessCodeError } = await supabase
-      .from('access_codes')
-      .select('id')
-      .eq('assigned_to', userId)
-      .eq('used', true)
-      .single();
-
-    if (accessCodeError && accessCodeError.code !== 'PGRST116') {
-      console.error('Error fetching access code details:', accessCodeError);
-      throw accessCodeError;
-    }
-
-    // If no access code found (should never happen if has_valid_access_code returned true)
-    if (!accessCode) {
-      console.error('Inconsistent state: has_valid_access_code true but no access code found');
-      return { 
-        canTake: false, 
-        message: "There was an error verifying your access code. Please try again." 
-      };
-    }
-
-    // Check if a test has already been taken with this access code
-    const { count, error: testCountError } = await supabase
-      .from('test_results')
-      .select('id', { count: 'exact' })
-      .eq('access_code_id', accessCode.id);
-
-    if (testCountError) {
-      console.error('Error checking test count:', testCountError);
-      throw testCountError;
-    }
-
-    if (count && count > 0) {
-      return { 
-        canTake: false, 
-        message: "You've already taken a test with this access code. Please obtain a new code to take another test." 
-      };
-    }
-
-    // User has a valid code and hasn't taken a test with it yet
-    return { canTake: true, message: "You can take the test." };
+    console.log("Test eligibility result:", data);
+    return data;
   } catch (error) {
     console.error('Error checking test eligibility:', error);
     // Fall back to allowing the test in case of errors

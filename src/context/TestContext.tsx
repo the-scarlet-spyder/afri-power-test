@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserResponse, UserResult, Strength, CategoryResult, StrengthCategory } from '../models/strength';
 import { questions, strengths, getCategoryDisplayName } from '../data/strengths';
@@ -48,17 +49,41 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [testHistory, setTestHistory] = useState<TestHistoryItem[] | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
+  // Load saved responses from localStorage on initial render
+  useEffect(() => {
+    const storedResults = localStorage.getItem('inuka_results');
+    const storedCategoryResults = localStorage.getItem('inuka_category_results');
+    const storedResponses = localStorage.getItem('inuka_responses');
+    
+    if (storedResults) {
+      setResults(JSON.parse(storedResults));
+    }
+    
+    if (storedCategoryResults) {
+      setCategoryResults(JSON.parse(storedCategoryResults));
+    }
+    
+    if (storedResponses) {
+      setResponses(JSON.parse(storedResponses));
+    }
+  }, []);
+
   const addResponse = (response: UserResponse) => {
     // Check if we're updating an existing response
     const existingIndex = responses.findIndex(r => r.questionId === response.questionId);
     
+    let newResponses: UserResponse[];
     if (existingIndex >= 0) {
-      const newResponses = [...responses];
+      newResponses = [...responses];
       newResponses[existingIndex] = response;
-      setResponses(newResponses);
     } else {
-      setResponses([...responses, response]);
+      newResponses = [...responses, response];
     }
+    
+    setResponses(newResponses);
+    
+    // Save to localStorage
+    localStorage.setItem('inuka_responses', JSON.stringify(newResponses));
     
     // Move to the next question if available
     if (currentQuestionIndex < questions.length - 1) {
@@ -136,7 +161,7 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setResults(result);
     setCategoryResults(categoryResults);
     
-    // In a real app, you'd save this to a database
+    // Save to localStorage
     localStorage.setItem('inuka_results', JSON.stringify(result));
     localStorage.setItem('inuka_category_results', JSON.stringify(categoryResults));
     
@@ -150,6 +175,7 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCategoryResults(null);
     localStorage.removeItem('inuka_results');
     localStorage.removeItem('inuka_category_results');
+    localStorage.removeItem('inuka_responses');
   };
 
   const getCategoryName = (category: StrengthCategory): string => {

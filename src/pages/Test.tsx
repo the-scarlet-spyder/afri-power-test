@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/lib/supabase';
 import { canTakeTest } from '@/lib/test-service';
 import { Skeleton } from "@/components/ui/skeleton";
 import AccessCodeVerification from '@/components/AccessCodeVerification';
@@ -15,7 +14,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const Test = () => {
@@ -47,34 +46,16 @@ const Test = () => {
       setCheckingCode(true);
       
       try {
-        // First check if user has a valid access code
-        const { data: hasCode, error: codeError } = await supabase.rpc('has_valid_access_code', {
-          _user_id: user.id
-        });
-        
-        if (codeError) {
-          console.error('Error checking access code:', codeError);
-          setHasValidCode(false);
-          return;
-        }
-        
-        setHasValidCode(hasCode);
-        
-        // If user doesn't have a valid code, redirect to access code page
-        if (!hasCode) {
-          navigate('/access-code');
-          return;
-        }
-        
-        // If user has a valid code, check if they can take a test with it
+        // Check if user can take a test with their current access code
         const eligibility = await canTakeTest(user.id);
-        setCanTakeNewTest(eligibility.canTake);
-        setEligibilityMessage(eligibility.message);
+        setHasValidCode(eligibility.can_take !== undefined ? eligibility.can_take : false);
+        setCanTakeNewTest(eligibility.can_take !== undefined ? eligibility.can_take : false);
+        setEligibilityMessage(eligibility.message || "");
         
-        if (!eligibility.canTake) {
+        if (!eligibility.can_take) {
           toast({
             title: "New Access Code Required",
-            description: eligibility.message,
+            description: eligibility.message || "You need a new access code to take a test.",
             variant: "destructive",
           });
         }
@@ -89,7 +70,7 @@ const Test = () => {
     };
     
     checkUserEligibility();
-  }, [user, navigate]);
+  }, [user, navigate, toast]);
   
   // Show loading while checking access code
   if (checkingCode) {
