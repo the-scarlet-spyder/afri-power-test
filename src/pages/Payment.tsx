@@ -13,7 +13,7 @@ const Payment = () => {
   const { user } = useAuth();
   
   // Set your price in the lowest currency unit (e.g., kobo for NGN, cents for USD)
-  const price = 25000000; // ₦25,0000.00
+  const price = 2500000; // ₦25,0000.00
   
   const handlePaymentSuccess = () => {
     navigate('/test');
