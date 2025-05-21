@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,10 +20,10 @@ const CertificateGenerator: React.FC = () => {
     setResults({ total: 0, created: 0, errors: 0 });
     
     try {
-      // Get all test results
+      // Get all test results with their full data
       const { data: testResults, error: testError } = await supabase
         .from('test_results')
-        .select('id, user_id')
+        .select('id, user_id, results')
         .order('created_at', { ascending: false });
       
       if (testError) throw new Error('Failed to fetch test results');
@@ -80,6 +79,19 @@ const CertificateGenerator: React.FC = () => {
           }
           
           if (!nameOnCertificate) nameOnCertificate = "Unnamed User";
+
+          // Verify that the test results data is valid
+          let parsedResults;
+          try {
+            parsedResults = JSON.parse(result.results);
+            if (!parsedResults.results || !parsedResults.results.topStrengths) {
+              throw new Error('Invalid test results structure');
+            }
+          } catch (parseError) {
+            console.error("Error parsing test results:", parseError);
+            setResults(prev => ({ ...prev, errors: prev.errors + 1 }));
+            continue;
+          }
           
           // Save the certificate
           await saveCertificate(

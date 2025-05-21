@@ -28,9 +28,9 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import Certificate from '@/components/Certificate';
-import { generateCertificatePDFData } from '@/lib/test-service';
+import AdminCertificate from '@/components/admin/AdminCertificate';
 import CertificateGenerator from '@/components/admin/CertificateGenerator';
+import { generateCertificatePDFData } from '@/lib/test-service';
 
 // Admin emails that are allowed to access this page
 const ADMIN_EMAILS = ['adrian.m.adepoju@gmail.com']; // Make sure your email is correctly listed here
@@ -268,6 +268,11 @@ const Admin = () => {
       
       console.log("Certificate data received:", certData);
       
+      // Verify the test results data structure
+      if (!certData.results || !certData.results.topStrengths) {
+        throw new Error('Invalid test results structure in certificate data');
+      }
+      
       // Set current certificate data to render in the hidden div
       setCurrentCertData({
         userName: certData.certificate.name_on_certificate,
@@ -276,54 +281,56 @@ const Admin = () => {
         certificateId: certData.certificate.certificate_id
       });
       
-      // Give more time for the component to render
-      setTimeout(async () => {
-        if (certificateRef.current) {
-          try {
-            console.log("Certificate DOM element found, generating canvas");
-            
-            // Generate canvas from the rendered certificate
-            const canvas = await html2canvas(certificateRef.current, {
-              scale: 2, // Higher resolution
-              logging: true, // Enable logging for debugging
-              useCORS: true,
-              allowTaint: true,
-              ignoreElements: (element) => element.tagName === 'IFRAME'
-            });
-            
-            console.log("Canvas generated successfully");
-            
-            // Create PDF
-            const pdf = new jsPDF({
-              orientation: 'portrait',
-              unit: 'mm',
-              format: 'a4',
-            });
-            
-            const imgData = canvas.toDataURL('image/png');
-            pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
-            
-            // Download the PDF
-            pdf.save(`Strength-Certificate-${certificateId}.pdf`);
-            
-            toast({
-              title: "Certificate Downloaded",
-              description: "Certificate PDF has been generated successfully.",
-            });
-          } catch (pdfError) {
-            console.error('Error generating PDF:', pdfError);
-            setCertRenderError(`PDF generation error: ${pdfError.message}`);
-            toast({
-              title: "Download Failed",
-              description: `PDF generation error: ${pdfError.message}`,
-              variant: "destructive",
-            });
-            throw pdfError;
+      // Wait for the certificate to render
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      if (!certificateRef.current) {
+        throw new Error('Certificate element not found in the DOM');
+      }
+
+      // Verify the certificate content is rendered
+      const certElement = certificateRef.current;
+      if (!certElement || !certElement.innerHTML) {
+        throw new Error('Certificate content element not found or empty');
+      }
+
+      console.log("Certificate DOM element found, generating canvas");
+      
+      // Generate canvas from the rendered certificate
+      const canvas = await html2canvas(certElement, {
+        scale: 2, // Higher resolution
+        logging: true, // Enable logging for debugging
+        useCORS: true,
+        allowTaint: true,
+        ignoreElements: (element) => element.tagName === 'IFRAME',
+        onclone: (clonedDoc) => {
+          // Verify the certificate content was properly cloned
+          const clonedElement = clonedDoc.querySelector('[data-certificate]');
+          if (!clonedElement || !clonedElement.innerHTML) {
+            throw new Error('Certificate content not found in cloned document');
           }
-        } else {
-          throw new Error('Certificate element not found in the DOM');
         }
-      }, 1000); // Increased timeout to 1000ms
+      });
+      
+      console.log("Canvas generated successfully");
+      
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+      
+      // Download the PDF
+      pdf.save(`Strength-Certificate-${certificateId}.pdf`);
+      
+      toast({
+        title: "Certificate Downloaded",
+        description: "Certificate PDF has been generated successfully.",
+      });
     } catch (error) {
       console.error('Error downloading certificate:', error);
       setCertRenderError(`${error.message}`);
@@ -543,20 +550,20 @@ const Admin = () => {
         </Tabs>
       </main>
       
-      {/* Hidden certificate for PDF generation - using visibility hidden instead of display none */}
+      {/* Hidden certificate for PDF generation */}
       <div style={{ 
-        position: 'absolute', 
+        position: 'fixed', 
         left: '-9999px', 
         top: 0, 
-        visibility: 'hidden',
         width: '210mm', // A4 width
         height: '297mm', // A4 height
         backgroundColor: 'white',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        zIndex: -1
       }}>
         {currentCertData && (
-          <div ref={certificateRef}>
-            <Certificate 
+          <div ref={certificateRef} className="certificate-content" style={{ display: 'block' }}>
+            <AdminCertificate 
               userName={currentCertData.userName}
               results={currentCertData.results}
               date={currentCertData.date}
