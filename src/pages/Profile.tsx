@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { useTest } from '@/context/TestContext';
+import { useForcedChoiceTest } from '@/context/ForcedChoiceTestContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Button } from '@/components/ui/button';
@@ -12,21 +12,30 @@ import { getUserCertificates } from '@/lib/test-service';
 import { Certificate } from '@/lib/database.types';
 import { toast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LogOut, User } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 const Profile = () => {
   const { user, logout } = useAuth();
-  const { testHistory, fetchTestHistory, loadingHistory } = useTest();
+  const { results, resetTest } = useForcedChoiceTest();
   const navigate = useNavigate();
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loadingCertificates, setLoadingCertificates] = useState(false);
+  const [testHistory, setTestHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   
   useEffect(() => {
     if (user) {
-      fetchTestHistory();
       loadCertificates();
+      // For now, we'll show current results as history if available
+      if (results) {
+        setTestHistory([{
+          id: 'current',
+          testDate: new Date().toISOString(),
+          results: results
+        }]);
+      }
     }
-  }, [user]);
+  }, [user, results]);
   
   const loadCertificates = async () => {
     if (!user) return;
@@ -53,15 +62,12 @@ const Profile = () => {
   const handleLogout = async () => {
     try {
       console.log("Logout button clicked");
-      // Show toast before logout to indicate process has started
       toast({
         title: "Logging out...",
         description: "Please wait while we log you out.",
       });
       
       await logout();
-      
-      // Force navigation to home page after logout
       navigate('/', { replace: true });
       
       toast({
@@ -131,19 +137,19 @@ const Profile = () => {
               testHistory.map((test, index) => (
                 <Card key={test.id} className="mb-4">
                   <CardHeader>
-                    <CardTitle>Strength Africa Assessment</CardTitle>
+                    <CardTitle>Strengths Africa Assessment</CardTitle>
                     <CardDescription>Taken on: {formatDate(test.testDate)}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p>Top Strengths:</p>
                     <ul className="list-disc pl-5">
-                      {test.results.topStrengths.map((strength, idx) => (
-                        <li key={idx}>{strength.strength.name}</li>
+                      {test.results.topStrengths?.map((strength: any, idx: number) => (
+                        <li key={idx}>{strength.trait}</li>
                       ))}
                     </ul>
                     <div className="flex">
                       <Button 
-                        onClick={() => navigate(`/results?test=${test.id}`)}
+                        onClick={() => navigate('/results')}
                         className="bg-inuka-crimson hover:bg-opacity-90 mt-2"
                         size="sm"
                       >
@@ -157,7 +163,7 @@ const Profile = () => {
               <Card className="mb-8 p-6 text-center">
                 <p>You haven't taken any tests yet.</p>
                 <Button 
-                  onClick={() => navigate('/test')}
+                  onClick={() => navigate('/payment')}
                   className="bg-inuka-crimson hover:bg-opacity-90 mt-4"
                 >
                   Take the Test Now
@@ -211,12 +217,12 @@ const Profile = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 mt-6">
               <Button 
-                onClick={() => navigate('/test')}
+                onClick={() => navigate('/payment')}
                 className="bg-inuka-crimson hover:bg-opacity-90"
               >
                 Take New Test
               </Button>
-              {testHistory && testHistory.length > 0 && (
+              {results && (
                 <Button 
                   onClick={() => navigate('/results')}
                   className="bg-inuka-gold text-inuka-charcoal hover:bg-opacity-90"
