@@ -11,11 +11,9 @@ import PaymentGuard from '@/components/PaymentGuard';
 // Import pages
 import Welcome from './pages/Welcome';
 import Login from './pages/Login';
-import Register from './pages/Register';
+import Signup from './pages/Signup';
 import Test from './pages/Test';
 import Results from './pages/Results';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import Payment from './pages/Payment';
@@ -35,9 +33,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Welcome />} />
                   <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/signup" element={<Signup />} />
                   
                   {/* Payment route */}
                   <Route path="/payment" element={<Payment />} />
