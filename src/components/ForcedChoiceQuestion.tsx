@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,186 +50,161 @@ const ForcedChoiceQuestion: React.FC = () => {
     }
   };
   
-  const baseClass = "px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 border-2 min-h-[60px] flex items-center justify-center text-center";
-  
+  // CliftonStrengths-style button classes
   const getButtonClass = (value: number) => {
     const isSelected = selectedValue === value;
+    const baseClass = "h-12 w-12 rounded-full border-2 transition-all duration-200 flex items-center justify-center hover:scale-105";
     
-    if (value > 0) {
-      // Statement A buttons
-      if (isSelected) {
-        return `${baseClass} bg-blue-500 text-white border-blue-500`;
-      }
-      return `${baseClass} bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100`;
-    } else if (value < 0) {
-      // Statement B buttons  
-      if (isSelected) {
-        return `${baseClass} bg-green-500 text-white border-green-500`;
-      }
-      return `${baseClass} bg-green-50 text-green-700 border-green-200 hover:bg-green-100`;
-    } else {
-      // Neutral button
-      if (isSelected) {
-        return `${baseClass} bg-gray-500 text-white border-gray-500`;
-      }
-      return `${baseClass} bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100`;
+    if (isSelected) {
+      return `${baseClass} bg-inuka-crimson border-inuka-crimson shadow-lg transform scale-110`;
     }
+    
+    return `${baseClass} bg-white border-gray-300 hover:border-inuka-crimson hover:shadow-md`;
   };
   
   return (
-    <div className="max-w-4xl mx-auto">
-      <Card className="shadow-lg border-none">
-        <CardHeader className="bg-gradient-to-r from-inuka-crimson to-[#a52323] text-white rounded-t-lg">
+    <div className="max-w-5xl mx-auto px-4">
+      <Card className="shadow-xl border-none bg-white">
+        <CardHeader className="bg-gradient-to-r from-inuka-crimson to-[#a52323] text-white">
           <div className="flex justify-between items-center">
-            <CardTitle className="text-2xl font-poppins">
+            <CardTitle className="text-xl font-poppins">
               Strengths Africa Assessment
             </CardTitle>
-            <Badge className="bg-white text-inuka-crimson hover:bg-inuka-offwhite">
-              Question {currentQuestionIndex + 1} of {forcedChoiceQuestions.length}
+            <Badge className="bg-white text-inuka-crimson px-3 py-1">
+              {currentQuestionIndex + 1} of {forcedChoiceQuestions.length}
             </Badge>
           </div>
-          <p className="text-sm opacity-90 mt-2 font-inter">
-            Choose the statement that better describes you and rate how strongly it applies
-          </p>
+          <div className="mt-4">
+            <Progress value={progress} className="h-2 bg-white/20" />
+          </div>
         </CardHeader>
         
-        <CardContent className="pt-6">
-          <div className="mb-6">
-            <div className="flex justify-between text-sm mb-1">
-              <span>Progress</span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <Progress value={progress} className="h-2 bg-gray-200" />
-          </div>
-          
-          <div className="mb-8">
-            <h2 className="text-lg font-medium mb-8 text-center text-inuka-charcoal font-poppins">
-              Which statement better describes you?
-            </h2>
+        <CardContent className="py-12 px-8">
+          {/* Question Layout - CliftonStrengths Style */}
+          <div className="max-w-4xl mx-auto">
             
-            <div className="space-y-6">
-              {/* Statement A */}
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h3 className="font-semibold text-blue-800 mb-2">Option A</h3>
-                <p className="text-blue-700 mb-3">{currentQuestion.statementA}</p>
-                <p className="text-sm text-blue-600 italic">({currentQuestion.traitA})</p>
+            {/* Statement A */}
+            <div className="mb-12">
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-8 border border-blue-200">
+                <p className="text-xl font-medium text-blue-900 leading-relaxed text-center">
+                  {currentQuestion.statementA}
+                </p>
               </div>
-              
-              {/* 7-Point Response Scale */}
-              <div className="my-8">
-                <div className="flex justify-between text-xs text-gray-500 mb-2">
-                  <span>Strongly Describes Me</span>
-                  <span>Neutral</span>
-                  <span>Strongly Describes Me</span>
-                </div>
-                
-                <div className="grid grid-cols-7 gap-2">
+            </div>
+            
+            {/* Response Scale - Horizontal Layout */}
+            <div className="mb-12">
+              <div className="flex items-center justify-center space-x-4">
+                {/* Left side - Statement A responses */}
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm font-medium text-blue-700 mr-2">Strongly</span>
                   <button
                     onClick={() => handleValueSelect(3)}
                     className={getButtonClass(3)}
+                    title="Strongly describes me"
                   >
-                    <div className="text-center">
-                      <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>
-                      <span className="text-xs">Strongly A</span>
-                    </div>
+                    {selectedValue === 3 && <div className="w-6 h-6 bg-white rounded-full"></div>}
                   </button>
+                  
                   <button
                     onClick={() => handleValueSelect(2)}
                     className={getButtonClass(2)}
+                    title="Moderately describes me"
                   >
-                    <div className="text-center">
-                      <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>
-                      <span className="text-xs">Moderately A</span>
-                    </div>
+                    {selectedValue === 2 && <div className="w-6 h-6 bg-white rounded-full"></div>}
                   </button>
+                  
                   <button
                     onClick={() => handleValueSelect(1)}
                     className={getButtonClass(1)}
+                    title="Slightly describes me"
                   >
-                    <div className="text-center">
-                      <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>
-                      <span className="text-xs">Slightly A</span>
-                    </div>
+                    {selectedValue === 1 && <div className="w-6 h-6 bg-white rounded-full"></div>}
                   </button>
-                  <button
-                    onClick={() => handleValueSelect(0)}
-                    className={getButtonClass(0)}
-                  >
-                    <div className="text-center">
-                      <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>
-                      <span className="text-xs">Neutral</span>
-                    </div>
-                  </button>
+                  <span className="text-sm font-medium text-blue-700 ml-2">Slightly</span>
+                </div>
+                
+                {/* Center divider */}
+                <div className="flex flex-col items-center mx-8">
+                  <div className="w-px h-16 bg-gray-300"></div>
+                  <span className="text-xs text-gray-500 mt-2 font-medium">OR</span>
+                </div>
+                
+                {/* Right side - Statement B responses */}
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm font-medium text-green-700 mr-2">Slightly</span>
                   <button
                     onClick={() => handleValueSelect(-1)}
                     className={getButtonClass(-1)}
+                    title="Slightly describes me"
                   >
-                    <div className="text-center">
-                      <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>
-                      <span className="text-xs">Slightly B</span>
-                    </div>
+                    {selectedValue === -1 && <div className="w-6 h-6 bg-white rounded-full"></div>}
                   </button>
+                  
                   <button
                     onClick={() => handleValueSelect(-2)}
                     className={getButtonClass(-2)}
+                    title="Moderately describes me"
                   >
-                    <div className="text-center">
-                      <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>
-                      <span className="text-xs">Moderately B</span>
-                    </div>
+                    {selectedValue === -2 && <div className="w-6 h-6 bg-white rounded-full"></div>}
                   </button>
+                  
                   <button
                     onClick={() => handleValueSelect(-3)}
                     className={getButtonClass(-3)}
+                    title="Strongly describes me"
                   >
-                    <div className="text-center">
-                      <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>
-                      <span className="text-xs">Strongly B</span>
-                    </div>
+                    {selectedValue === -3 && <div className="w-6 h-6 bg-white rounded-full"></div>}
                   </button>
+                  <span className="text-sm font-medium text-green-700 ml-2">Strongly</span>
                 </div>
-              </div>
-              
-              {/* Statement B */}
-              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                <h3 className="font-semibold text-green-800 mb-2">Option B</h3>
-                <p className="text-green-700 mb-3">{currentQuestion.statementB}</p>
-                <p className="text-sm text-green-600 italic">({currentQuestion.traitB})</p>
               </div>
             </div>
             
-            {selectedValue !== null && (
-              <div className="mt-4 text-center">
-                <p className="text-sm text-gray-600">
-                  You selected: <span className="font-medium">
-                    {selectedValue === 0 ? 'Neutral' : 
-                     `${Math.abs(selectedValue) === 3 ? 'Strongly' : 
-                        Math.abs(selectedValue) === 2 ? 'Moderately' : 'Slightly'} ${selectedValue > 0 ? 'A' : 'B'}`}
-                  </span>
+            {/* Statement B */}
+            <div className="mb-12">
+              <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-2xl p-8 border border-green-200">
+                <p className="text-xl font-medium text-green-900 leading-relaxed text-center">
+                  {currentQuestion.statementB}
                 </p>
               </div>
-            )}
-          </div>
-          
-          <div className="flex justify-between">
-            <Button 
-              onClick={handlePrevious}
-              disabled={!canGoBack}
-              variant="outline"
-              className="border-inuka-crimson text-inuka-crimson hover:bg-inuka-crimson hover:text-white"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
+            </div>
             
-            <Button 
-              onClick={handleNext}
-              disabled={!canGoForward || selectedValue === null}
-              className="bg-inuka-crimson hover:bg-opacity-90 px-8"
-            >
-              Next
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            {/* Selection Feedback */}
+            {selectedValue !== null && (
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center px-4 py-2 bg-gray-100 rounded-full">
+                  <div className="w-3 h-3 bg-inuka-crimson rounded-full mr-2"></div>
+                  <span className="text-sm font-medium text-gray-700">
+                    Selection recorded
+                  </span>
+                </div>
+              </div>
+            )}
+            
+            {/* Navigation */}
+            <div className="flex justify-between items-center">
+              <Button 
+                onClick={handlePrevious}
+                disabled={!canGoBack}
+                variant="outline"
+                size="lg"
+                className="border-2 border-gray-300 text-gray-600 hover:border-inuka-crimson hover:text-inuka-crimson px-6"
+              >
+                <ArrowLeft className="w-5 h-5 mr-2" />
+                Previous
+              </Button>
+              
+              <Button 
+                onClick={handleNext}
+                disabled={!canGoForward || selectedValue === null}
+                size="lg"
+                className="bg-inuka-crimson hover:bg-inuka-crimson/90 px-8 py-3 text-lg font-medium"
+              >
+                {currentQuestionIndex === forcedChoiceQuestions.length - 1 ? 'Complete Assessment' : 'Next Question'}
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
