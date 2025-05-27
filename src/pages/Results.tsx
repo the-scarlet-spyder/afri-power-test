@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTest } from '@/context/TestContext';
+import { usePairedTest } from '@/context/PairedTestContext';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -26,7 +27,23 @@ import {
 import { generateCertificatePDF } from '@/utils/certificatePDFGenerator';
 
 const Results = () => {
-  const { results, categoryResults, resetTest, getCategoryName, testHistory } = useTest();
+  // Try both contexts - use whichever has results
+  const originalTest = useTest();
+  const pairedTest = usePairedTest();
+  
+  // Determine which test type has results
+  const hasOriginalResults = originalTest.results !== null;
+  const hasPairedResults = pairedTest.results !== null;
+  
+  // Use the appropriate context
+  const { results, categoryResults, resetTest, getCategoryName, testHistory } = hasOriginalResults ? originalTest : {
+    results: pairedTest.results,
+    categoryResults: null, // Paired test doesn't have category results
+    resetTest: pairedTest.resetTest,
+    getCategoryName: () => "",
+    testHistory: pairedTest.testHistory
+  };
+  
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -38,7 +55,7 @@ const Results = () => {
   
   useEffect(() => {
     if (!results && !testHistory) {
-      const storedResults = localStorage.getItem('inuka_results');
+      const storedResults = localStorage.getItem('inuka_results') || localStorage.getItem('paired_test_results');
       if (!storedResults) {
         navigate('/test');
       }
@@ -60,7 +77,7 @@ const Results = () => {
   
   const handleRetake = () => {
     resetTest();
-    navigate('/test');
+    navigate('/payment'); // Redirect to payment for new test
   };
 
   // Function to generate a unique certificate ID
@@ -201,7 +218,9 @@ const Results = () => {
             <Tabs defaultValue="top-strengths" className="mb-12">
               <TabsList className="mb-8 bg-white border-2 border-muted p-1">
                 <TabsTrigger value="top-strengths" className="font-poppins data-[state=active]:bg-inuka-crimson data-[state=active]:text-white">Top Strengths</TabsTrigger>
-                <TabsTrigger value="by-category" className="font-poppins data-[state=active]:bg-inuka-crimson data-[state=active]:text-white">By Category</TabsTrigger>
+                {categoryResults && (
+                  <TabsTrigger value="by-category" className="font-poppins data-[state=active]:bg-inuka-crimson data-[state=active]:text-white">By Category</TabsTrigger>
+                )}
               </TabsList>
               
               <TabsContent value="top-strengths">
@@ -213,13 +232,15 @@ const Results = () => {
                 />
               </TabsContent>
               
-              <TabsContent value="by-category">
-                <ResultsByCategory 
-                  categoryResults={categoryResults} 
-                  getCategoryCardClass={getCategoryCardClass}
-                  getCategoryColor={getCategoryColor}
-                />
-              </TabsContent>
+              {categoryResults && (
+                <TabsContent value="by-category">
+                  <ResultsByCategory 
+                    categoryResults={categoryResults} 
+                    getCategoryCardClass={getCategoryCardClass}
+                    getCategoryColor={getCategoryColor}
+                  />
+                </TabsContent>
+              )}
             </Tabs>
             
             <NextSteps />

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { useTest } from '@/context/TestContext';
+import { usePairedTest } from '@/context/PairedTestContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ import { LogOut, User } from 'lucide-react';
 
 const Profile = () => {
   const { user, logout } = useAuth();
-  const { testHistory, fetchTestHistory, loadingHistory } = useTest();
+  const { testHistory, fetchTestHistory, loadingHistory } = usePairedTest();
   const navigate = useNavigate();
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loadingCertificates, setLoadingCertificates] = useState(false);
@@ -211,7 +211,7 @@ const Profile = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 mt-6">
               <Button 
-                onClick={() => navigate('/test')}
+                onClick={() => navigate('/payment')}
                 className="bg-inuka-crimson hover:bg-opacity-90"
               >
                 Take New Test

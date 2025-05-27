@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthContext";
 import { TestProvider } from "./context/TestContext";
+import { PairedTestProvider } from "./context/PairedTestContext";
 import AuthGuard from "./components/AuthGuard";
 import PaymentGuard from "./components/PaymentGuard";
 
@@ -15,6 +16,7 @@ import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Welcome from "./pages/Welcome";
 import Test from "./pages/Test";
+import PairedTest from "./pages/PairedTest";
 import Results from "./pages/Results";
 import Profile from "./pages/Profile";
 import Payment from "./pages/Payment";
@@ -35,64 +37,66 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TestProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/signup" element={
-                <AuthGuard requireAuth={false} redirectPath="/payment">
-                  <Signup />
-                </AuthGuard>
-              } />
-              <Route path="/login" element={
-                <AuthGuard requireAuth={false} redirectPath="/payment">
-                  <Login />
-                </AuthGuard>
-              } />
-              <Route path="/payment" element={
-                <AuthGuard>
-                  <Payment />
-                </AuthGuard>
-              } />
-              <Route path="/welcome" element={
-                <AuthGuard>
-                  <PaymentGuard>
-                    <Welcome />
-                  </PaymentGuard>
-                </AuthGuard>
-              } />
-              <Route path="/test" element={
-                <AuthGuard>
-                  <PaymentGuard>
-                    <Test />
-                  </PaymentGuard>
-                </AuthGuard>
-              } />
-              <Route path="/results" element={
-                <AuthGuard>
-                  <PaymentGuard>
-                    <Results />
-                  </PaymentGuard>
-                </AuthGuard>
-              } />
-              <Route path="/profile" element={
-                <AuthGuard>
-                  <Profile />
-                </AuthGuard>
-              } />
-              <Route path="/admin" element={
-                <AuthGuard>
-                  <Admin />
-                </AuthGuard>
-              } />
-              <Route path="/certificate/:certificateId" element={<VerifyCertificate />} />
-              <Route path="/verify" element={<VerifyCertificate />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <PairedTestProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/signup" element={
+                  <AuthGuard requireAuth={false} redirectPath="/payment">
+                    <Signup />
+                  </AuthGuard>
+                } />
+                <Route path="/login" element={
+                  <AuthGuard requireAuth={false} redirectPath="/payment">
+                    <Login />
+                  </AuthGuard>
+                } />
+                <Route path="/payment" element={
+                  <AuthGuard>
+                    <Payment />
+                  </AuthGuard>
+                } />
+                <Route path="/welcome" element={
+                  <AuthGuard>
+                    <PaymentGuard>
+                      <Welcome />
+                    </PaymentGuard>
+                  </AuthGuard>
+                } />
+                <Route path="/test" element={
+                  <AuthGuard>
+                    <PaymentGuard>
+                      <PairedTest />
+                    </PaymentGuard>
+                  </AuthGuard>
+                } />
+                <Route path="/results" element={
+                  <AuthGuard>
+                    <PaymentGuard>
+                      <Results />
+                    </PaymentGuard>
+                  </AuthGuard>
+                } />
+                <Route path="/profile" element={
+                  <AuthGuard>
+                    <Profile />
+                  </AuthGuard>
+                } />
+                <Route path="/admin" element={
+                  <AuthGuard>
+                    <Admin />
+                  </AuthGuard>
+                } />
+                <Route path="/certificate/:certificateId" element={<VerifyCertificate />} />
+                <Route path="/verify" element={<VerifyCertificate />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </PairedTestProvider>
       </TestProvider>
     </AuthProvider>
   </QueryClientProvider>
