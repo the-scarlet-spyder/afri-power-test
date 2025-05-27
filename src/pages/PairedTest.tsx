@@ -47,14 +47,6 @@ const PairedTest = () => {
     );
   }
   
-  const scaleLabels = [
-    "Strongly describes left",
-    "Slightly describes left", 
-    "Neutral",
-    "Slightly describes right",
-    "Strongly describes right"
-  ];
-  
   return (
     <div className="min-h-screen flex flex-col bg-[#F9F9F9] font-inter">
       <Navbar />
@@ -92,16 +84,16 @@ const PairedTest = () => {
                   </h2>
                   
                   {/* Statement Comparison */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div className="bg-[#E6F4EA] p-4 rounded-lg ml-0 mr-4">
                       <div className="flex items-center mb-2">
-                        <div className="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
-                        <span className="text-sm font-medium text-red-700">Statement A</span>
+                        <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
+                        <span className="text-sm font-medium text-green-700">Statement A</span>
                       </div>
                       <p className="text-gray-700 font-medium">{currentPair.questionA.text}</p>
                     </div>
                     
-                    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                    <div className="bg-[#E7F0FB] p-4 rounded-lg ml-4 mr-0">
                       <div className="flex items-center mb-2">
                         <div className="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
                         <span className="text-sm font-medium text-blue-700">Statement B</span>
@@ -111,11 +103,11 @@ const PairedTest = () => {
                   </div>
                   
                   {/* 5-Point Scale */}
-                  <div className="space-y-6 px-4 py-6">
-                    <div className="flex items-center justify-between">
+                  <div className="space-y-6 px-12 py-6">
+                    <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center">
-                        <div className="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
-                        <span className="text-sm font-medium text-red-700">Statement A</span>
+                        <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
+                        <span className="text-sm font-medium text-green-700">Statement A</span>
                       </div>
                       <div className="flex items-center">
                         <div className="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
@@ -144,15 +136,6 @@ const PairedTest = () => {
                       
                       {/* Connecting line */}
                       <div className="absolute top-4 left-4 right-4 h-0.5 bg-gray-300 -z-10"></div>
-                      
-                      {/* Scale labels */}
-                      <div className="grid grid-cols-5 gap-2 mt-4">
-                        {scaleLabels.map((label, index) => (
-                          <div key={index} className="text-xs text-center text-gray-600">
-                            {label}
-                          </div>
-                        ))}
-                      </div>
                     </div>
                   </div>
                 </div>
