@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -6,10 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useForcedChoiceTest } from '@/context/ForcedChoiceTestContext';
+import { toast } from '@/components/ui/use-toast';
+import Certificate from '@/components/Certificate';
+import { format } from 'date-fns';
 
 const ForcedChoiceResults: React.FC = () => {
   const { results, resetTest } = useForcedChoiceTest();
   const navigate = useNavigate();
+  const [userName, setUserName] = useState<string>("");
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [certificateId, setCertificateId] = useState<string>("");
+  const certificateRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     if (!results) {
@@ -19,11 +27,106 @@ const ForcedChoiceResults: React.FC = () => {
         navigate('/test');
       }
     }
+    
+    // Try to get user's name from localStorage if available
+    const storedName = localStorage.getItem('user_name');
+    if (storedName) {
+      setUserName(storedName);
+    }
+    
+    // Generate a certificate ID
+    setCertificateId(generateCertificateId());
   }, [results, navigate]);
   
   const handleRetake = () => {
     resetTest();
-    navigate('/test');
+    // Redirect to payment page instead of directly to test
+    navigate('/payment');
+  };
+
+  // Function to generate a unique certificate ID
+  const generateCertificateId = () => {
+    return `SA-${Math.floor(100000 + Math.random() * 900000)}`;
+  };
+
+  // Function to download the certificate as PDF
+  const downloadPDF = async () => {
+    if (!certificateRef.current || !results) {
+      toast({
+        title: "Error",
+        description: "Please make sure you have completed the test and entered your name.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsGeneratingPDF(true);
+    toast({
+      title: "Generating your certificate",
+      description: "Please wait while we prepare your PDF certificate...",
+    });
+    
+    try {
+      // Simple PDF generation using window.print for now
+      // You can integrate a proper PDF library like jsPDF here
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <html>
+            <head>
+              <title>Strengths Africa Certificate - ${userName}</title>
+              <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .certificate { text-align: center; padding: 40px; border: 2px solid #C92A2A; }
+                .header { color: #C92A2A; margin-bottom: 30px; }
+                .name { font-size: 28px; font-weight: bold; margin: 20px 0; }
+                .strengths { text-align: left; margin: 30px auto; max-width: 600px; }
+                .strength-item { margin: 10px 0; padding: 10px; border-left: 4px solid #FACC15; }
+              </style>
+            </head>
+            <body>
+              <div class="certificate">
+                <div class="header">
+                  <h1>Strengths Africa Certificate</h1>
+                  <p>Certificate of Strength Discovery</p>
+                </div>
+                <p>This certifies that</p>
+                <div class="name">${userName}</div>
+                <p>has successfully completed the Strengths Africa Assessment</p>
+                <div class="strengths">
+                  <h3>Top 5 Strengths:</h3>
+                  ${results.topStrengths.map((strength, index) => `
+                    <div class="strength-item">
+                      <strong>${index + 1}. ${strength.trait}</strong><br>
+                      <em>"${strength.tagline}"</em><br>
+                      Score: ${strength.score}
+                    </div>
+                  `).join('')}
+                </div>
+                <p>Date: ${format(new Date(), "MMMM d, yyyy")}</p>
+                <p>Certificate ID: ${certificateId}</p>
+              </div>
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+      }
+      
+      toast({
+        title: "Certificate Generated",
+        description: "Your certificate is ready for download/printing.",
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Error generating certificate",
+        description: "There was a problem creating your PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
   
   const getCategoryColor = (category: string): string => {
@@ -126,7 +229,39 @@ const ForcedChoiceResults: React.FC = () => {
               </ul>
             </div>
             
-            <div className="flex justify-center">
+            {/* Certificate Download Section */}
+            <div className="bg-white p-6 rounded-lg shadow-sm mb-8 border border-muted">
+              <h3 className="text-xl font-semibold text-inuka-crimson mb-3 font-poppins">Download Your Certificate</h3>
+              <p className="text-gray-700 mb-4">
+                Enter your full name as you would like it to appear on your certificate.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                <input 
+                  type="text" 
+                  placeholder="Enter your full name" 
+                  value={userName} 
+                  onChange={(e) => {
+                    setUserName(e.target.value);
+                    localStorage.setItem('user_name', e.target.value);
+                  }}
+                  className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+              
+              <div className="flex items-center text-sm text-gray-600 mt-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                Certificate ID: {certificateId}
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                onClick={downloadPDF}
+                disabled={isGeneratingPDF || !userName.trim()}
+                className="bg-inuka-gold text-inuka-charcoal hover:bg-opacity-90"
+              >
+                {isGeneratingPDF ? "Generating PDF..." : "Download PDF Certificate"}
+              </Button>
               <Button 
                 onClick={handleRetake}
                 variant="outline" 
@@ -138,6 +273,17 @@ const ForcedChoiceResults: React.FC = () => {
           </div>
         </div>
       </main>
+      
+      {/* Hidden certificate component for PDF generation */}
+      <div className="hidden">
+        <Certificate 
+          ref={certificateRef}
+          userName={userName || "Your Name"}
+          results={results}
+          date={format(new Date(), "MMMM d, yyyy")}
+          certificateId={certificateId}
+        />
+      </div>
       
       <Footer />
     </div>

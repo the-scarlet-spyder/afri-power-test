@@ -53,29 +53,20 @@ const ForcedChoiceQuestion: React.FC = () => {
   
   const getButtonClass = (value: number) => {
     const isSelected = selectedValue === value;
-    const baseClass = "px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 border-2";
+    const baseClass = "px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 border-2 min-h-[60px] flex items-center justify-center text-center";
     
     if (value > 0) {
-      // Trait A buttons
+      // Statement A buttons
       if (isSelected) {
         return `${baseClass} bg-blue-500 text-white border-blue-500`;
       }
       return `${baseClass} bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100`;
     } else {
-      // Trait B buttons
+      // Statement B buttons  
       if (isSelected) {
         return `${baseClass} bg-green-500 text-white border-green-500`;
       }
       return `${baseClass} bg-green-50 text-green-700 border-green-200 hover:bg-green-100`;
-    }
-  };
-  
-  const getIntensityLabel = (value: number) => {
-    switch (Math.abs(value)) {
-      case 3: return "Strongly";
-      case 2: return "Moderately";
-      case 1: return "Slightly";
-      default: return "";
     }
   };
   
@@ -118,44 +109,79 @@ const ForcedChoiceQuestion: React.FC = () => {
                 <p className="text-sm text-blue-600 italic">({currentQuestion.traitA})</p>
               </div>
               
-              {/* Response Scale */}
-              <div className="grid grid-cols-6 gap-2 my-6">
-                <button
-                  onClick={() => handleValueSelect(3)}
-                  className={getButtonClass(3)}
-                >
-                  Strongly A
-                </button>
-                <button
-                  onClick={() => handleValueSelect(2)}
-                  className={getButtonClass(2)}
-                >
-                  Moderately A
-                </button>
-                <button
-                  onClick={() => handleValueSelect(1)}
-                  className={getButtonClass(1)}
-                >
-                  Slightly A
-                </button>
-                <button
-                  onClick={() => handleValueSelect(-1)}
-                  className={getButtonClass(-1)}
-                >
-                  Slightly B
-                </button>
-                <button
-                  onClick={() => handleValueSelect(-2)}
-                  className={getButtonClass(-2)}
-                >
-                  Moderately B
-                </button>
-                <button
-                  onClick={() => handleValueSelect(-3)}
-                  className={getButtonClass(-3)}
-                >
-                  Strongly B
-                </button>
+              {/* 7-Point Response Scale */}
+              <div className="my-8">
+                <div className="flex justify-between text-xs text-gray-500 mb-2">
+                  <span>Strongly Describes Me</span>
+                  <span>Neutral</span>
+                  <span>Strongly Describes Me</span>
+                </div>
+                
+                <div className="grid grid-cols-7 gap-2">
+                  <button
+                    onClick={() => handleValueSelect(3)}
+                    className={getButtonClass(3)}
+                  >
+                    <div className="text-center">
+                      <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>
+                      <span className="text-xs">Strongly A</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleValueSelect(2)}
+                    className={getButtonClass(2)}
+                  >
+                    <div className="text-center">
+                      <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>
+                      <span className="text-xs">Moderately A</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleValueSelect(1)}
+                    className={getButtonClass(1)}
+                  >
+                    <div className="text-center">
+                      <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>
+                      <span className="text-xs">Slightly A</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleValueSelect(0)}
+                    className={`${selectedValue === 0 ? 'bg-gray-500 text-white border-gray-500' : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'} ${baseClass}`}
+                  >
+                    <div className="text-center">
+                      <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>
+                      <span className="text-xs">Neutral</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleValueSelect(-1)}
+                    className={getButtonClass(-1)}
+                  >
+                    <div className="text-center">
+                      <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>
+                      <span className="text-xs">Slightly B</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleValueSelect(-2)}
+                    className={getButtonClass(-2)}
+                  >
+                    <div className="text-center">
+                      <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>
+                      <span className="text-xs">Moderately B</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleValueSelect(-3)}
+                    className={getButtonClass(-3)}
+                  >
+                    <div className="text-center">
+                      <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>
+                      <span className="text-xs">Strongly B</span>
+                    </div>
+                  </button>
+                </div>
               </div>
               
               {/* Statement B */}
@@ -170,7 +196,9 @@ const ForcedChoiceQuestion: React.FC = () => {
               <div className="mt-4 text-center">
                 <p className="text-sm text-gray-600">
                   You selected: <span className="font-medium">
-                    {getIntensityLabel(selectedValue)} {selectedValue > 0 ? 'A' : 'B'}
+                    {selectedValue === 0 ? 'Neutral' : 
+                     `${Math.abs(selectedValue) === 3 ? 'Strongly' : 
+                        Math.abs(selectedValue) === 2 ? 'Moderately' : 'Slightly'} ${selectedValue > 0 ? 'A' : 'B'}`}
                   </span>
                 </p>
               </div>

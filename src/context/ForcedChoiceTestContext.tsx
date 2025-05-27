@@ -37,6 +37,7 @@ export const ForcedChoiceTestProvider: React.FC<{ children: React.ReactNode }> =
   useEffect(() => {
     const savedResponses = localStorage.getItem('forced_choice_responses');
     const savedQuestionIndex = localStorage.getItem('forced_choice_question_index');
+    const savedResults = localStorage.getItem('forced_choice_results');
     
     if (savedResponses) {
       try {
@@ -51,6 +52,14 @@ export const ForcedChoiceTestProvider: React.FC<{ children: React.ReactNode }> =
         setCurrentQuestionIndex(parseInt(savedQuestionIndex));
       } catch (e) {
         console.error("Failed to parse saved question index:", e);
+      }
+    }
+
+    if (savedResults) {
+      try {
+        setResults(JSON.parse(savedResults));
+      } catch (e) {
+        console.error("Failed to parse saved results:", e);
       }
     }
   }, []);
@@ -70,6 +79,9 @@ export const ForcedChoiceTestProvider: React.FC<{ children: React.ReactNode }> =
     // Save to localStorage
     localStorage.setItem('forced_choice_responses', JSON.stringify(newResponses));
     localStorage.setItem('forced_choice_question_index', currentQuestionIndex.toString());
+    
+    console.log('Response added:', response);
+    console.log('Total responses:', newResponses.length);
   };
 
   const calculateResults = async (): Promise<ForcedChoiceResults | null> => {
@@ -81,6 +93,8 @@ export const ForcedChoiceTestProvider: React.FC<{ children: React.ReactNode }> =
       });
       return null;
     }
+
+    console.log('Calculating results from responses:', responses);
 
     // Calculate trait scores
     const traitScores: Record<string, number> = {};
@@ -94,14 +108,21 @@ export const ForcedChoiceTestProvider: React.FC<{ children: React.ReactNode }> =
     responses.forEach(response => {
       const { value, traitA, traitB } = response;
       
+      console.log(`Processing response: ${traitA} vs ${traitB}, value: ${value}`);
+      
       if (value > 0) {
         // Positive value means traitA was chosen
         traitScores[traitA] += Math.abs(value);
+        console.log(`Added ${Math.abs(value)} points to ${traitA}`);
       } else if (value < 0) {
         // Negative value means traitB was chosen
         traitScores[traitB] += Math.abs(value);
+        console.log(`Added ${Math.abs(value)} points to ${traitB}`);
       }
+      // value === 0 (neutral) adds no points to either trait
     });
+    
+    console.log('Final trait scores:', traitScores);
     
     // Sort traits by score and get top 5
     const topStrengths: StrengthResult[] = Object.entries(traitScores)
@@ -115,11 +136,23 @@ export const ForcedChoiceTestProvider: React.FC<{ children: React.ReactNode }> =
         category: traitDefinitions[trait].category
       }));
     
+    console.log('Top 5 strengths:', topStrengths);
+    
     const calculatedResults = { topStrengths };
     setResults(calculatedResults);
     
     // Save results
     localStorage.setItem('forced_choice_results', JSON.stringify(calculatedResults));
+    
+    // Save to backend if user is authenticated
+    if (user) {
+      try {
+        // You can add backend save functionality here
+        console.log('User authenticated, could save to backend:', user.id);
+      } catch (error) {
+        console.error('Failed to save results to backend:', error);
+      }
+    }
     
     return calculatedResults;
   };
@@ -131,12 +164,14 @@ export const ForcedChoiceTestProvider: React.FC<{ children: React.ReactNode }> =
     localStorage.removeItem('forced_choice_responses');
     localStorage.removeItem('forced_choice_question_index');
     localStorage.removeItem('forced_choice_results');
+    console.log('Test reset');
   };
 
   const goToQuestion = (index: number) => {
     if (index >= 0 && index < forcedChoiceQuestions.length) {
       setCurrentQuestionIndex(index);
       localStorage.setItem('forced_choice_question_index', index.toString());
+      console.log('Navigated to question:', index + 1);
     }
   };
 
