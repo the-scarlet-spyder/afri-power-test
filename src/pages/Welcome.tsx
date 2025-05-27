@@ -1,70 +1,189 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Clock, Brain, FileCheck, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { Button } from '@/components/ui/button';
 
 const Welcome = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleTakeTest = () => {
+    if (user) {
+      navigate('/payment');
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleTakeForcedChoiceTest = () => {
+    if (user) {
+      navigate('/payment');
+    } else {
+      navigate('/login');
+    }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-inuka-offwhite">
+    <div className="min-h-screen flex flex-col bg-[#F9F9F9] font-inter">
       <Navbar />
       
-      <main className="flex-grow py-12 md:py-20">
-        <div className="inuka-container">
-          <div className="max-w-3xl mx-auto bg-white p-8 md:p-12 rounded-xl shadow-md animate-fade-in">
-            <h1 className="text-3xl md:text-4xl font-bold text-inuka-charcoal text-center mb-4 font-poppins">
-              Welcome to Strengths Africa!
-            </h1>
-            
-            <h2 className="text-xl md:text-2xl text-inuka-crimson text-center mb-6 font-poppins">
-              Let's discover what makes you extraordinary.
-            </h2>
-            
-            <p className="text-lg text-gray-700 mb-10 text-center">
-              This free test will help you uncover your top strengths — the personal traits that make you shine. 
-              It only takes a few minutes, and at the end, you'll get a personalized certificate highlighting 
-              your Top 5 strengths.
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-              <div className="bg-inuka-offwhite p-6 rounded-lg flex flex-col items-center text-center">
-                <div className="h-14 w-14 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
-                  <Clock className="h-7 w-7 text-inuka-crimson" />
-                </div>
-                <h3 className="font-medium text-inuka-charcoal mb-2 font-poppins">Time</h3>
-                <p className="text-gray-700">Takes about 5–7 minutes</p>
-              </div>
-              
-              <div className="bg-inuka-offwhite p-6 rounded-lg flex flex-col items-center text-center">
-                <div className="h-14 w-14 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
-                  <Brain className="h-7 w-7 text-inuka-crimson" />
-                </div>
-                <h3 className="font-medium text-inuka-charcoal mb-2 font-poppins">Be Honest</h3>
-                <p className="text-gray-700">There are no right or wrong answers</p>
-              </div>
-              
-              <div className="bg-inuka-offwhite p-6 rounded-lg flex flex-col items-center text-center">
-                <div className="h-14 w-14 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
-                  <FileCheck className="h-7 w-7 text-inuka-crimson" />
-                </div>
-                <h3 className="font-medium text-inuka-charcoal mb-2 font-poppins">Get Your Certificate</h3>
-                <p className="text-gray-700">Free PDF at the end</p>
-              </div>
-            </div>
-            
-            <div className="flex justify-center">
-              <Link to="/test">
+      <main className="flex-grow">
+        {/* Hero Section */}
+        <section className="py-20 lg:py-32 bg-gradient-to-br from-inuka-crimson via-[#a52323] to-inuka-crimson">
+          <div className="inuka-container">
+            <div className="max-w-4xl mx-auto text-center text-white">
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight font-poppins">
+                Discover Your Unique <span className="text-inuka-gold">Strengths</span>
+              </h1>
+              <p className="text-xl md:text-2xl mb-8 opacity-90">
+                Unlock your potential with Africa's premier strength discovery assessment
+              </p>
+              <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
                 <Button 
-                  className="bg-inuka-crimson hover:bg-opacity-90 text-white font-semibold py-6 px-10 rounded-md text-lg shadow-md transition-all duration-300 hover:translate-y-[-2px] active:translate-y-[1px]"
+                  onClick={handleTakeTest}
+                  size="lg" 
+                  className="bg-inuka-gold text-inuka-charcoal hover:bg-opacity-90 font-semibold px-8 py-6 text-lg w-full sm:w-auto"
                 >
-                  Start Test <ArrowRight className="ml-2 h-5 w-5" />
+                  Take the Test
                 </Button>
-              </Link>
+                <Button 
+                  onClick={handleTakeForcedChoiceTest}
+                  size="lg" 
+                  variant="outline"
+                  className="border-2 border-white text-white hover:bg-white hover:text-inuka-crimson font-semibold px-8 py-6 text-lg w-full sm:w-auto"
+                >
+                  Try New Assessment Format
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="py-20 bg-white">
+          <div className="inuka-container">
+            <div className="max-w-6xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-inuka-charcoal font-poppins">
+                Why Choose Strengths Africa?
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="text-center p-6">
+                  <div className="w-16 h-16 bg-inuka-crimson rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-inuka-charcoal font-poppins">
+                    Scientifically Validated
+                  </h3>
+                  <p className="text-gray-600">
+                    Our assessment is based on proven psychological research and validated across diverse African contexts.
+                  </p>
+                </div>
+                
+                <div className="text-center p-6">
+                  <div className="w-16 h-16 bg-inuka-crimson rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-inuka-charcoal font-poppins">
+                    Culturally Relevant
+                  </h3>
+                  <p className="text-gray-600">
+                    Designed specifically for African professionals, incorporating cultural values and work contexts.
+                  </p>
+                </div>
+                
+                <div className="text-center p-6">
+                  <div className="w-16 h-16 bg-inuka-crimson rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-inuka-charcoal font-poppins">
+                    Actionable Insights
+                  </h3>
+                  <p className="text-gray-600">
+                    Get practical recommendations for leveraging your strengths in your career and personal life.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Assessment Options Section */}
+        <section className="py-20 bg-gray-50">
+          <div className="inuka-container">
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-inuka-charcoal font-poppins">
+                Choose Your Assessment Format
+              </h2>
+              <p className="text-lg text-gray-600 mb-12">
+                We offer two different assessment formats to help you discover your strengths
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
+                  <h3 className="text-xl font-semibold mb-4 text-inuka-charcoal font-poppins">
+                    Traditional Assessment
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Rate yourself on various strength statements using our intuitive interface.
+                  </p>
+                  <Button 
+                    onClick={handleTakeTest}
+                    className="bg-inuka-crimson hover:bg-opacity-90 w-full"
+                  >
+                    Take Traditional Test
+                  </Button>
+                </div>
+                
+                <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
+                  <h3 className="text-xl font-semibold mb-4 text-inuka-charcoal font-poppins">
+                    Forced Choice Assessment
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Choose between paired statements to reveal your natural preferences and strengths.
+                  </p>
+                  <Button 
+                    onClick={handleTakeForcedChoiceTest}
+                    variant="outline"
+                    className="border-inuka-crimson text-inuka-crimson hover:bg-inuka-crimson hover:text-white w-full"
+                  >
+                    Try New Format
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-20 bg-inuka-charcoal text-white">
+          <div className="inuka-container">
+            <div className="max-w-3xl mx-auto text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 font-poppins">
+                Ready to Discover Your Strengths?
+              </h2>
+              <p className="text-xl mb-8 opacity-90">
+                Join thousands of African professionals who have unlocked their potential
+              </p>
+              <Button 
+                onClick={handleTakeTest}
+                size="lg" 
+                className="bg-inuka-gold text-inuka-charcoal hover:bg-opacity-90 font-semibold px-12 py-6 text-lg"
+              >
+                Get Started Today
+              </Button>
+            </div>
+          </div>
+        </section>
       </main>
       
       <Footer />
