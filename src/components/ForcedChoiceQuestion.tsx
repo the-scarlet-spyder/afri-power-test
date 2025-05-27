@@ -51,9 +51,10 @@ const ForcedChoiceQuestion: React.FC = () => {
     }
   };
   
+  const baseClass = "px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 border-2 min-h-[60px] flex items-center justify-center text-center";
+  
   const getButtonClass = (value: number) => {
     const isSelected = selectedValue === value;
-    const baseClass = "px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 border-2 min-h-[60px] flex items-center justify-center text-center";
     
     if (value > 0) {
       // Statement A buttons
@@ -61,12 +62,18 @@ const ForcedChoiceQuestion: React.FC = () => {
         return `${baseClass} bg-blue-500 text-white border-blue-500`;
       }
       return `${baseClass} bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100`;
-    } else {
+    } else if (value < 0) {
       // Statement B buttons  
       if (isSelected) {
         return `${baseClass} bg-green-500 text-white border-green-500`;
       }
       return `${baseClass} bg-green-50 text-green-700 border-green-200 hover:bg-green-100`;
+    } else {
+      // Neutral button
+      if (isSelected) {
+        return `${baseClass} bg-gray-500 text-white border-gray-500`;
+      }
+      return `${baseClass} bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100`;
     }
   };
   
@@ -147,7 +154,7 @@ const ForcedChoiceQuestion: React.FC = () => {
                   </button>
                   <button
                     onClick={() => handleValueSelect(0)}
-                    className={`${selectedValue === 0 ? 'bg-gray-500 text-white border-gray-500' : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'} ${baseClass}`}
+                    className={getButtonClass(0)}
                   >
                     <div className="text-center">
                       <div className="w-4 h-4 rounded-full bg-current mx-auto mb-1"></div>

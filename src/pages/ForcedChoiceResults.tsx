@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -10,6 +9,8 @@ import { useForcedChoiceTest } from '@/context/ForcedChoiceTestContext';
 import { toast } from '@/components/ui/use-toast';
 import Certificate from '@/components/Certificate';
 import { format } from 'date-fns';
+import { UserResult, Strength } from '@/models/strength';
+import { ForcedChoiceResults as ForcedChoiceResultsType } from '@/models/forcedChoice';
 
 const ForcedChoiceResults: React.FC = () => {
   const { results, resetTest } = useForcedChoiceTest();
@@ -40,13 +41,30 @@ const ForcedChoiceResults: React.FC = () => {
   
   const handleRetake = () => {
     resetTest();
-    // Redirect to payment page instead of directly to test
+    // Redirect to payment page for new test
     navigate('/payment');
   };
 
   // Function to generate a unique certificate ID
   const generateCertificateId = () => {
     return `SA-${Math.floor(100000 + Math.random() * 900000)}`;
+  };
+
+  // Convert ForcedChoiceResults to UserResult format for Certificate component
+  const convertToUserResult = (forcedChoiceResults: ForcedChoiceResultsType): UserResult => {
+    return {
+      topStrengths: forcedChoiceResults.topStrengths.map(strengthResult => ({
+        strength: {
+          id: strengthResult.trait.toLowerCase().replace(/\s+/g, '-'),
+          name: strengthResult.trait,
+          tagline: strengthResult.tagline,
+          description: strengthResult.description,
+          recommendations: [`Leverage your ${strengthResult.trait} strength in daily activities`],
+          category: strengthResult.category as any
+        } as Strength,
+        score: strengthResult.score
+      }))
+    };
   };
 
   // Function to download the certificate as PDF
@@ -279,7 +297,7 @@ const ForcedChoiceResults: React.FC = () => {
         <Certificate 
           ref={certificateRef}
           userName={userName || "Your Name"}
-          results={results}
+          results={convertToUserResult(results)}
           date={format(new Date(), "MMMM d, yyyy")}
           certificateId={certificateId}
         />
