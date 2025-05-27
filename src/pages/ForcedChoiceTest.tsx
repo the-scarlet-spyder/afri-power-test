@@ -18,7 +18,7 @@ const ForcedChoiceTest: React.FC = () => {
   const handleSubmit = async () => {
     const results = await calculateResults();
     if (results) {
-      navigate('/forced-choice-results');
+      navigate('/results');
     }
   };
   

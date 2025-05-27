@@ -18,14 +18,6 @@ const Welcome = () => {
     }
   };
 
-  const handleTakeForcedChoiceTest = () => {
-    if (user) {
-      navigate('/payment');
-    } else {
-      navigate('/login');
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-[#F9F9F9] font-inter">
       <Navbar />
@@ -48,14 +40,6 @@ const Welcome = () => {
                   className="bg-inuka-gold text-inuka-charcoal hover:bg-opacity-90 font-semibold px-8 py-6 text-lg w-full sm:w-auto"
                 >
                   Take the Test
-                </Button>
-                <Button 
-                  onClick={handleTakeForcedChoiceTest}
-                  size="lg" 
-                  variant="outline"
-                  className="border-2 border-white text-white hover:bg-white hover:text-inuka-crimson font-semibold px-8 py-6 text-lg w-full sm:w-auto"
-                >
-                  Try New Assessment Format
                 </Button>
               </div>
             </div>
@@ -111,53 +95,6 @@ const Welcome = () => {
                   <p className="text-gray-600">
                     Get practical recommendations for leveraging your strengths in your career and personal life.
                   </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Assessment Options Section */}
-        <section className="py-20 bg-gray-50">
-          <div className="inuka-container">
-            <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-inuka-charcoal font-poppins">
-                Choose Your Assessment Format
-              </h2>
-              <p className="text-lg text-gray-600 mb-12">
-                We offer two different assessment formats to help you discover your strengths
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
-                  <h3 className="text-xl font-semibold mb-4 text-inuka-charcoal font-poppins">
-                    Traditional Assessment
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    Rate yourself on various strength statements using our intuitive interface.
-                  </p>
-                  <Button 
-                    onClick={handleTakeTest}
-                    className="bg-inuka-crimson hover:bg-opacity-90 w-full"
-                  >
-                    Take Traditional Test
-                  </Button>
-                </div>
-                
-                <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
-                  <h3 className="text-xl font-semibold mb-4 text-inuka-charcoal font-poppins">
-                    Forced Choice Assessment
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    Choose between paired statements to reveal your natural preferences and strengths.
-                  </p>
-                  <Button 
-                    onClick={handleTakeForcedChoiceTest}
-                    variant="outline"
-                    className="border-inuka-crimson text-inuka-crimson hover:bg-inuka-crimson hover:text-white w-full"
-                  >
-                    Try New Format
-                  </Button>
                 </div>
               </div>
             </div>

@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -17,14 +16,14 @@ const ForcedChoiceResults: React.FC = () => {
       // Try to load from localStorage
       const savedResults = localStorage.getItem('forced_choice_results');
       if (!savedResults) {
-        navigate('/forced-choice-test');
+        navigate('/test');
       }
     }
   }, [results, navigate]);
   
   const handleRetake = () => {
     resetTest();
-    navigate('/forced-choice-test');
+    navigate('/test');
   };
   
   const getCategoryColor = (category: string): string => {
