@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTest } from '@/context/TestContext';
@@ -34,6 +33,11 @@ const Results = () => {
   // Determine which test type has results
   const hasOriginalResults = originalTest.results !== null;
   const hasPairedResults = pairedTest.results !== null;
+  
+  console.log("Original test results:", originalTest.results);
+  console.log("Paired test results:", pairedTest.results);
+  console.log("Original test category results:", originalTest.categoryResults);
+  console.log("Paired test category results:", pairedTest.categoryResults);
   
   // Use the appropriate context
   const { results, categoryResults, resetTest, testHistory } = hasOriginalResults ? originalTest : {
@@ -229,9 +233,7 @@ const Results = () => {
             <Tabs defaultValue="top-strengths" className="mb-12">
               <TabsList className="mb-8 bg-white border-2 border-muted p-1">
                 <TabsTrigger value="top-strengths" className="font-poppins data-[state=active]:bg-inuka-crimson data-[state=active]:text-white">Top Strengths</TabsTrigger>
-                {categoryResults && (
-                  <TabsTrigger value="by-category" className="font-poppins data-[state=active]:bg-inuka-crimson data-[state=active]:text-white">By Category</TabsTrigger>
-                )}
+                <TabsTrigger value="by-category" className="font-poppins data-[state=active]:bg-inuka-crimson data-[state=active]:text-white">By Category</TabsTrigger>
               </TabsList>
               
               <TabsContent value="top-strengths">
@@ -243,15 +245,20 @@ const Results = () => {
                 />
               </TabsContent>
               
-              {categoryResults && (
-                <TabsContent value="by-category">
+              <TabsContent value="by-category">
+                {categoryResults && categoryResults.length > 0 ? (
                   <ResultsByCategory 
                     categoryResults={categoryResults} 
                     getCategoryCardClass={getCategoryCardClass}
                     getCategoryColor={getCategoryColor}
                   />
-                </TabsContent>
-              )}
+                ) : (
+                  <div className="text-center p-8 bg-white rounded-lg shadow-md">
+                    <h3 className="text-xl font-bold text-inuka-crimson mb-4">Category Results Loading</h3>
+                    <p className="text-gray-600">Please wait while we organize your results by category.</p>
+                  </div>
+                )}
+              </TabsContent>
             </Tabs>
             
             <NextSteps />

@@ -1,6 +1,7 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { strengths } from '@/data/strengths';
-import { UserResult, CategoryResult } from '@/models/strength';
+import { UserResult, CategoryResult, StrengthCategory } from '@/models/strength';
 import { useAuth } from './AuthContext';
 import { 
   StatementPair, 
@@ -119,24 +120,36 @@ export const PairedTestProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       topStrengths
     };
     
-    // Calculate category results
-    const categoryMap = new Map<string, {strength: any; score: number}[]>();
+    // Calculate category results - include ALL traits, not just top 5
+    const categoryMap = new Map<StrengthCategory, {strength: any; score: number}[]>();
+    
+    // Initialize all categories
+    const allCategories: StrengthCategory[] = [
+      "thinking-learning",
+      "interpersonal", 
+      "leadership-influence",
+      "execution-discipline",
+      "identity-purpose-values"
+    ];
+    
+    allCategories.forEach(category => {
+      categoryMap.set(category, []);
+    });
     
     traitScoresCalculated.forEach(traitScore => {
       const strength = strengths.find(s => s.id === traitScore.traitId);
       if (!strength) return;
       
       const averageScore = traitScore.appearances > 0 ? traitScore.totalScore / traitScore.appearances : 0;
-      const category = strength.category;
+      const category = strength.category as StrengthCategory;
       
-      if (!categoryMap.has(category)) {
-        categoryMap.set(category, []);
+      const categoryArray = categoryMap.get(category);
+      if (categoryArray) {
+        categoryArray.push({
+          strength,
+          score: averageScore
+        });
       }
-      
-      categoryMap.get(category)!.push({
-        strength,
-        score: averageScore
-      });
     });
     
     // Sort each category by score and create display names with proper typing
@@ -149,11 +162,12 @@ export const PairedTestProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
     
     const categoriesArray: CategoryResult[] = Array.from(categoryMap.entries()).map(([category, strengths]) => ({
-      category: category as any, // Cast to StrengthCategory type
+      category,
       displayName: categoryDisplayNames[category] || category,
       strengths: strengths.sort((a, b) => b.score - a.score)
     }));
     
+    console.log("Calculated category results:", categoriesArray);
     setCategoryResults(categoriesArray);
     setResults(result);
     
