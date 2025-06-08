@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTest } from '@/context/TestContext';
@@ -5,7 +6,6 @@ import { usePairedTest } from '@/context/PairedTestContext';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/use-toast';
 import Certificate from '@/components/Certificate';
 import { format } from 'date-fns';
@@ -13,7 +13,6 @@ import { saveCertificate } from '@/lib/test-service';
 
 // Import new components
 import ResultsTopStrengths from '@/components/results/ResultsTopStrengths';
-import ResultsByCategory from '@/components/results/ResultsByCategory';
 import NextSteps from '@/components/results/NextSteps';
 import CertificateDownload from '@/components/results/CertificateDownload';
 
@@ -36,13 +35,10 @@ const Results = () => {
   
   console.log("Original test results:", originalTest.results);
   console.log("Paired test results:", pairedTest.results);
-  console.log("Original test category results:", originalTest.categoryResults);
-  console.log("Paired test category results:", pairedTest.categoryResults);
   
   // Use the appropriate context
-  const { results, categoryResults, resetTest, testHistory } = hasOriginalResults ? originalTest : {
+  const { results, resetTest, testHistory } = hasOriginalResults ? originalTest : {
     results: pairedTest.results,
-    categoryResults: pairedTest.categoryResults,
     resetTest: pairedTest.resetTest,
     testHistory: pairedTest.testHistory
   };
@@ -70,7 +66,6 @@ const Results = () => {
   
   useEffect(() => {
     console.log("Results changed:", results);
-    console.log("Category results changed:", categoryResults);
     
     if (!results && !testHistory) {
       const storedResults = localStorage.getItem('inuka_results') || localStorage.getItem('paired_test_results');
@@ -91,7 +86,7 @@ const Results = () => {
     
     // Generate a certificate ID
     setCertificateId(generateCertificateId());
-  }, [results, navigate, user, testHistory, categoryResults]);
+  }, [results, navigate, user, testHistory]);
   
   const handleRetake = () => {
     resetTest();
@@ -233,42 +228,14 @@ const Results = () => {
               </p>
             </header>
             
-            <Tabs defaultValue="top-strengths" className="mb-12">
-              <TabsList className="mb-8 bg-white border-2 border-muted p-1">
-                <TabsTrigger value="top-strengths" className="font-poppins data-[state=active]:bg-inuka-crimson data-[state=active]:text-white">Top Strengths</TabsTrigger>
-                <TabsTrigger value="by-category" className="font-poppins data-[state=active]:bg-inuka-crimson data-[state=active]:text-white">By Category</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="top-strengths">
-                <ResultsTopStrengths 
-                  results={results}
-                  getCategoryName={getCategoryName}
-                  getCategoryCardClass={getCategoryCardClass}
-                  getCategoryBadgeClass={getCategoryBadgeClass}
-                />
-              </TabsContent>
-              
-              <TabsContent value="by-category">
-                {categoryResults && categoryResults.length > 0 ? (
-                  <ResultsByCategory 
-                    categoryResults={categoryResults} 
-                    getCategoryCardClass={getCategoryCardClass}
-                    getCategoryColor={getCategoryColor}
-                  />
-                ) : (
-                  <div className="text-center p-8 bg-white rounded-lg shadow-md">
-                    <h3 className="text-xl font-bold text-inuka-crimson mb-4">Category Results Loading</h3>
-                    <p className="text-gray-600">Please wait while we organize your results by category.</p>
-                    {/* Debug info */}
-                    <div className="mt-4 text-xs text-gray-400">
-                      <p>Debug: categoryResults = {categoryResults ? `${categoryResults.length} items` : 'null'}</p>
-                      <p>Has results: {results ? 'yes' : 'no'}</p>
-                      <p>Using paired test: {!hasOriginalResults ? 'yes' : 'no'}</p>
-                    </div>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
+            <div className="mb-12">
+              <ResultsTopStrengths 
+                results={results}
+                getCategoryName={getCategoryName}
+                getCategoryCardClass={getCategoryCardClass}
+                getCategoryBadgeClass={getCategoryBadgeClass}
+              />
+            </div>
             
             <NextSteps />
             
