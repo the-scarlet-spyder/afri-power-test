@@ -12,7 +12,7 @@ export interface StatementPair {
 
 export interface PairResponse {
   pairId: string;
-  score: number; // 1-5 where 1 is strongly A, 5 is strongly B
+  score: number; // 1-7 where 1 is strongly A, 7 is strongly B
 }
 
 export interface TraitScore {
@@ -113,31 +113,39 @@ export const calculateTraitScores = (responses: PairResponse[], pairs: Statement
     let scoreA: number;
     let scoreB: number;
     
-    // Assign points based on slider position
+    // Assign points based on 7-point scale position
     switch (score) {
       case 1: // Strongly describes A
-        scoreA = 5;
+        scoreA = 6;
         scoreB = 0;
         break;
-      case 2: // Slightly describes A
-        scoreA = 4;
+      case 2: // Moderately describes A
+        scoreA = 5;
         scoreB = 1;
         break;
-      case 3: // Neutral
-        scoreA = 2.5;
-        scoreB = 2.5;
+      case 3: // Slightly describes A
+        scoreA = 4;
+        scoreB = 2;
         break;
-      case 4: // Slightly describes B
-        scoreA = 1;
+      case 4: // Neutral
+        scoreA = 3;
+        scoreB = 3;
+        break;
+      case 5: // Slightly describes B
+        scoreA = 2;
         scoreB = 4;
         break;
-      case 5: // Strongly describes B
-        scoreA = 0;
+      case 6: // Moderately describes B
+        scoreA = 1;
         scoreB = 5;
         break;
+      case 7: // Strongly describes B
+        scoreA = 0;
+        scoreB = 6;
+        break;
       default:
-        scoreA = 2.5;
-        scoreB = 2.5;
+        scoreA = 3;
+        scoreB = 3;
     }
     
     // Add scores to traits

@@ -6,13 +6,10 @@ import { useToast } from '@/components/ui/use-toast';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 
 const PairedTest = () => {
   const { pairs, currentPairIndex, addResponse, calculateResults } = usePairedTest();
-  const [selectedValue, setSelectedValue] = useState<number>(3);
+  const [selectedValue, setSelectedValue] = useState<number>(4); // Middle of 7-point scale
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -27,7 +24,7 @@ const PairedTest = () => {
       score: selectedValue
     });
     
-    setSelectedValue(3); // Reset to neutral for next question
+    setSelectedValue(4); // Reset to neutral for next question
     
     if (currentPairIndex >= pairs.length - 1) {
       // Test is complete
@@ -51,105 +48,105 @@ const PairedTest = () => {
     <div className="min-h-screen flex flex-col bg-[#F9F9F9] font-inter">
       <Navbar />
       
-      <main className="flex-grow py-12">
+      <main className="flex-grow py-8 sm:py-12">
         <div className="inuka-container">
-          <div className="max-w-4xl mx-auto">
-            <Card className="shadow-lg border-none">
-              <CardHeader className="bg-gradient-to-r from-inuka-crimson to-[#a52323] text-white rounded-t-lg">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-2xl font-poppins">
-                    Strengths Africa Assessment
-                  </CardTitle>
-                  <Badge className="bg-white text-inuka-crimson hover:bg-inuka-offwhite">
-                    Question {currentPairIndex + 1} of {pairs.length}
-                  </Badge>
-                </div>
-                <p className="text-sm opacity-90 mt-2 font-inter">
-                  Compare these statements and choose which sounds more like you
-                </p>
-              </CardHeader>
+          <div className="max-w-4xl mx-auto px-4">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold text-inuka-crimson mb-2 font-poppins">
+                Strengths Africa Assessment
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600 mb-4">
+                Question {currentPairIndex + 1} of {pairs.length}
+              </p>
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+                <div 
+                  className="bg-inuka-crimson h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+            </div>
+            
+            {/* Question */}
+            <div className="mb-8">
+              <h2 className="text-lg sm:text-xl font-medium mb-6 text-inuka-charcoal text-center font-poppins">
+                Which sounds more like you?
+              </h2>
               
-              <CardContent className="pt-6">
-                <div className="mb-6">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">Progress</span>
-                    <span>{Math.round(progress)}%</span>
+              {/* Statement Comparison - Always side by side */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-8">
+                <div className="bg-[#E6F4EA] p-2 sm:p-4 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-full mr-2"></div>
+                    <span className="text-xs sm:text-sm font-medium text-green-700">Statement A</span>
                   </div>
-                  <Progress value={progress} className="h-2 bg-gray-200" />
+                  <p className="text-sm sm:text-base text-gray-700 font-medium leading-tight">
+                    {currentPair.questionA.text}
+                  </p>
                 </div>
                 
-                <div className="mb-8 pt-2">
-                  <h2 className="text-xl font-medium mb-8 text-inuka-charcoal text-center font-poppins">
-                    Which sounds more like you?
-                  </h2>
-                  
-                  {/* Statement Comparison */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <div className="bg-[#E6F4EA] p-4 rounded-lg ml-0 mr-4">
-                      <div className="flex items-center mb-2">
-                        <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                        <span className="text-sm font-medium text-green-700">Statement A</span>
-                      </div>
-                      <p className="text-gray-700 font-medium">{currentPair.questionA.text}</p>
-                    </div>
-                    
-                    <div className="bg-[#E7F0FB] p-4 rounded-lg ml-4 mr-0">
-                      <div className="flex items-center mb-2">
-                        <div className="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
-                        <span className="text-sm font-medium text-blue-700">Statement B</span>
-                      </div>
-                      <p className="text-gray-700 font-medium">{currentPair.questionB.text}</p>
-                    </div>
+                <div className="bg-[#E7F0FB] p-2 sm:p-4 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-blue-500 rounded-full mr-2"></div>
+                    <span className="text-xs sm:text-sm font-medium text-blue-700">Statement B</span>
                   </div>
-                  
-                  {/* 5-Point Scale */}
-                  <div className="space-y-6 px-12 py-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                        <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                        <span className="text-sm font-medium text-green-700">Statement A</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
-                        <span className="text-sm font-medium text-blue-700">Statement B</span>
-                      </div>
-                    </div>
-                    
-                    <div className="relative">
-                      <div className="flex justify-between items-center mb-2">
-                        {[1, 2, 3, 4, 5].map((value) => (
-                          <button
-                            key={value}
-                            onClick={() => setSelectedValue(value)}
-                            className={`w-8 h-8 rounded-full border-2 transition-all duration-200 ${
-                              selectedValue === value
-                                ? 'bg-inuka-crimson border-inuka-crimson shadow-lg scale-110'
-                                : 'bg-white border-gray-300 hover:border-inuka-crimson hover:scale-105'
-                            }`}
-                          >
-                            {selectedValue === value && (
-                              <div className="w-3 h-3 bg-white rounded-full mx-auto"></div>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                      
-                      {/* Connecting line */}
-                      <div className="absolute top-4 left-4 right-4 h-0.5 bg-gray-300 -z-10"></div>
-                    </div>
+                  <p className="text-sm sm:text-base text-gray-700 font-medium leading-tight">
+                    {currentPair.questionB.text}
+                  </p>
+                </div>
+              </div>
+              
+              {/* 7-Point Scale */}
+              <div className="space-y-6 px-4 sm:px-12 py-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-full mr-2"></div>
+                    <span className="text-xs sm:text-sm font-medium text-green-700">Statement A</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-blue-500 rounded-full mr-2"></div>
+                    <span className="text-xs sm:text-sm font-medium text-blue-700">Statement B</span>
                   </div>
                 </div>
                 
-                <div className="flex justify-end">
-                  <Button 
-                    onClick={handleNext} 
-                    className="bg-inuka-crimson hover:bg-opacity-90 px-8 py-6 text-base"
-                  >
-                    {currentPairIndex >= pairs.length - 1 ? "Submit" : "Next"}
-                  </Button>
+                <div className="relative">
+                  <div className="flex justify-between items-center mb-2">
+                    {[1, 2, 3, 4, 5, 6, 7].map((value) => (
+                      <button
+                        key={value}
+                        onClick={() => setSelectedValue(value)}
+                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-md transition-all duration-200 ${
+                          selectedValue === value
+                            ? 'bg-inuka-crimson shadow-lg scale-110'
+                            : `bg-gray-${200 + (value * 50)} hover:bg-inuka-crimson hover:bg-opacity-20 hover:scale-105`
+                        }`}
+                        style={{
+                          backgroundColor: selectedValue === value 
+                            ? undefined 
+                            : `rgba(156, 163, 175, ${0.3 + (Math.abs(4 - value) * 0.1)})`
+                        }}
+                      >
+                        {selectedValue === value && (
+                          <div className="w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-sm mx-auto"></div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {/* Connecting line */}
+                  <div className="absolute top-4 sm:top-5 left-4 sm:left-5 right-4 sm:right-5 h-0.5 bg-gray-300 -z-10"></div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+            
+            <div className="flex justify-center">
+              <Button 
+                onClick={handleNext} 
+                className="bg-inuka-crimson hover:bg-opacity-90 px-8 py-3 text-base w-full sm:w-auto"
+              >
+                {currentPairIndex >= pairs.length - 1 ? "Submit" : "Next"}
+              </Button>
+            </div>
           </div>
         </div>
       </main>
