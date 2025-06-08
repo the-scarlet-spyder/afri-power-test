@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { strengths } from '@/data/strengths';
 import { UserResult } from '@/models/strength';
@@ -22,6 +21,11 @@ interface PairedTestContextType {
   resetTest: () => void;
   results: UserResult | null;
   traitScores: TraitScore[] | null;
+  categoryResults: {
+    category: string;
+    displayName: string;
+    strengths: { strength: any; score: number; }[];
+  }[] | null;
   testHistory: {
     id: string;
     testDate: string;
@@ -47,6 +51,7 @@ export const PairedTestProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [responses, setResponses] = useState<PairResponse[]>([]);
   const [results, setResults] = useState<UserResult | null>(null);
   const [traitScores, setTraitScores] = useState<TraitScore[] | null>(null);
+  const [categoryResults, setCategoryResults] = useState<{category: string; displayName: string; strengths: {strength: any; score: number;}[]}[] | null>(null);
   const [testHistory, setTestHistory] = useState<{id: string; testDate: string; results: UserResult}[] | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const { user } = useAuth();
@@ -118,6 +123,42 @@ export const PairedTestProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       topStrengths
     };
     
+    // Calculate category results
+    const categoryMap = new Map<string, {strength: any; score: number}[]>();
+    
+    traitScoresCalculated.forEach(traitScore => {
+      const strength = strengths.find(s => s.id === traitScore.traitId);
+      if (!strength) return;
+      
+      const averageScore = traitScore.appearances > 0 ? traitScore.totalScore / traitScore.appearances : 0;
+      const category = strength.category;
+      
+      if (!categoryMap.has(category)) {
+        categoryMap.set(category, []);
+      }
+      
+      categoryMap.get(category)!.push({
+        strength,
+        score: averageScore
+      });
+    });
+    
+    // Sort each category by score and create display names
+    const categoryDisplayNames: Record<string, string> = {
+      "thinking-learning": "Thinking & Learning",
+      "interpersonal": "Interpersonal",
+      "leadership-influence": "Leadership & Influence", 
+      "execution-discipline": "Execution & Discipline",
+      "identity-purpose-values": "Identity, Purpose & Values"
+    };
+    
+    const categoriesArray = Array.from(categoryMap.entries()).map(([category, strengths]) => ({
+      category,
+      displayName: categoryDisplayNames[category] || category,
+      strengths: strengths.sort((a, b) => b.score - a.score)
+    }));
+    
+    setCategoryResults(categoriesArray);
     setResults(result);
     
     // Save to localStorage
@@ -161,6 +202,7 @@ export const PairedTestProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setResponses([]);
     setResults(null);
     setTraitScores(null);
+    setCategoryResults(null);
     localStorage.removeItem('paired_test_responses');
     localStorage.removeItem('paired_test_results');
   };
@@ -175,6 +217,7 @@ export const PairedTestProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       resetTest,
       results,
       traitScores,
+      categoryResults,
       testHistory,
       loadingHistory,
       fetchTestHistory

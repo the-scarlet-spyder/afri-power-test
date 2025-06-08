@@ -16,7 +16,7 @@ const Payment = () => {
   const price = 2500000; // ₦25,0000.00
   
   const handlePaymentSuccess = () => {
-    navigate('/test');
+    navigate('/welcome');
   };
   
   return (

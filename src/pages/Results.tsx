@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTest } from '@/context/TestContext';
@@ -36,12 +35,23 @@ const Results = () => {
   const hasPairedResults = pairedTest.results !== null;
   
   // Use the appropriate context
-  const { results, categoryResults, resetTest, getCategoryName, testHistory } = hasOriginalResults ? originalTest : {
+  const { results, categoryResults, resetTest, testHistory } = hasOriginalResults ? originalTest : {
     results: pairedTest.results,
-    categoryResults: null, // Paired test doesn't have category results
+    categoryResults: pairedTest.categoryResults,
     resetTest: pairedTest.resetTest,
-    getCategoryName: () => "",
     testHistory: pairedTest.testHistory
+  };
+  
+  // Add getCategoryName function for paired test
+  const getCategoryName = (category: string): string => {
+    const categoryDisplayNames: Record<string, string> = {
+      "thinking-learning": "Thinking & Learning",
+      "interpersonal": "Interpersonal", 
+      "leadership-influence": "Leadership & Influence",
+      "execution-discipline": "Execution & Discipline",
+      "identity-purpose-values": "Identity, Purpose & Values"
+    };
+    return categoryDisplayNames[category] || category;
   };
   
   const { user } = useAuth();
