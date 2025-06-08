@@ -69,6 +69,9 @@ const Results = () => {
   const certificateRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
+    console.log("Results changed:", results);
+    console.log("Category results changed:", categoryResults);
+    
     if (!results && !testHistory) {
       const storedResults = localStorage.getItem('inuka_results') || localStorage.getItem('paired_test_results');
       if (!storedResults) {
@@ -88,7 +91,7 @@ const Results = () => {
     
     // Generate a certificate ID
     setCertificateId(generateCertificateId());
-  }, [results, navigate, user, testHistory]);
+  }, [results, navigate, user, testHistory, categoryResults]);
   
   const handleRetake = () => {
     resetTest();
@@ -256,6 +259,12 @@ const Results = () => {
                   <div className="text-center p-8 bg-white rounded-lg shadow-md">
                     <h3 className="text-xl font-bold text-inuka-crimson mb-4">Category Results Loading</h3>
                     <p className="text-gray-600">Please wait while we organize your results by category.</p>
+                    {/* Debug info */}
+                    <div className="mt-4 text-xs text-gray-400">
+                      <p>Debug: categoryResults = {categoryResults ? `${categoryResults.length} items` : 'null'}</p>
+                      <p>Has results: {results ? 'yes' : 'no'}</p>
+                      <p>Using paired test: {!hasOriginalResults ? 'yes' : 'no'}</p>
+                    </div>
                   </div>
                 )}
               </TabsContent>

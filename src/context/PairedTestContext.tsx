@@ -60,7 +60,21 @@ export const PairedTestProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     
     if (storedResults) {
       try {
-        setResults(JSON.parse(storedResults));
+        const parsedResults = JSON.parse(storedResults);
+        setResults(parsedResults);
+        
+        // If we have stored results, recalculate category results
+        if (storedResponses) {
+          const parsedResponses = JSON.parse(storedResponses);
+          setResponses(parsedResponses);
+          
+          // Recalculate trait scores and category results
+          const traitScoresCalculated = calculateTraitScores(parsedResponses, pairs);
+          setTraitScores(traitScoresCalculated);
+          
+          // Generate category results
+          generateCategoryResults(traitScoresCalculated);
+        }
       } catch (e) {
         console.error("Failed to parse stored results:", e);
       }
@@ -73,52 +87,10 @@ export const PairedTestProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         console.error("Failed to parse stored responses:", e);
       }
     }
-  }, []);
+  }, [pairs]);
 
-  const addResponse = (response: PairResponse) => {
-    const existingIndex = responses.findIndex(r => r.pairId === response.pairId);
-    
-    let newResponses: PairResponse[];
-    if (existingIndex >= 0) {
-      newResponses = [...responses];
-      newResponses[existingIndex] = response;
-    } else {
-      newResponses = [...responses, response];
-    }
-    
-    setResponses(newResponses);
-    localStorage.setItem('paired_test_responses', JSON.stringify(newResponses));
-    
-    // Move to next pair if available
-    if (currentPairIndex < pairs.length - 1) {
-      setCurrentPairIndex(currentPairIndex + 1);
-    }
-  };
-
-  const calculateResults = async (): Promise<UserResult | null> => {
-    const traitScoresCalculated = calculateTraitScores(responses, pairs);
-    setTraitScores(traitScoresCalculated);
-    
-    // Get top 5 traits
-    const topTraits = traitScoresCalculated.slice(0, 5);
-    
-    // Convert to UserResult format
-    const topStrengths = topTraits.map(traitScore => {
-      const strength = strengths.find(s => s.id === traitScore.traitId);
-      if (!strength) throw new Error(`Strength not found for trait ${traitScore.traitId}`);
-      
-      // Calculate average score (total score / appearances)
-      const averageScore = traitScore.appearances > 0 ? traitScore.totalScore / traitScore.appearances : 0;
-      
-      return {
-        strength,
-        score: averageScore
-      };
-    });
-    
-    const result: UserResult = {
-      topStrengths
-    };
+  const generateCategoryResults = (traitScoresCalculated: TraitScore[]) => {
+    console.log("Generating category results with trait scores:", traitScoresCalculated);
     
     // Calculate category results - include ALL traits, not just top 5
     const categoryMap = new Map<StrengthCategory, {strength: any; score: number}[]>();
@@ -167,8 +139,61 @@ export const PairedTestProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       strengths: strengths.sort((a, b) => b.score - a.score)
     }));
     
-    console.log("Calculated category results:", categoriesArray);
+    console.log("Generated category results:", categoriesArray);
     setCategoryResults(categoriesArray);
+  };
+
+  const addResponse = (response: PairResponse) => {
+    const existingIndex = responses.findIndex(r => r.pairId === response.pairId);
+    
+    let newResponses: PairResponse[];
+    if (existingIndex >= 0) {
+      newResponses = [...responses];
+      newResponses[existingIndex] = response;
+    } else {
+      newResponses = [...responses, response];
+    }
+    
+    setResponses(newResponses);
+    localStorage.setItem('paired_test_responses', JSON.stringify(newResponses));
+    
+    // Move to next pair if available
+    if (currentPairIndex < pairs.length - 1) {
+      setCurrentPairIndex(currentPairIndex + 1);
+    }
+  };
+
+  const calculateResults = async (): Promise<UserResult | null> => {
+    console.log("Calculating results with responses:", responses);
+    
+    const traitScoresCalculated = calculateTraitScores(responses, pairs);
+    console.log("Calculated trait scores:", traitScoresCalculated);
+    setTraitScores(traitScoresCalculated);
+    
+    // Get top 5 traits
+    const topTraits = traitScoresCalculated.slice(0, 5);
+    
+    // Convert to UserResult format
+    const topStrengths = topTraits.map(traitScore => {
+      const strength = strengths.find(s => s.id === traitScore.traitId);
+      if (!strength) throw new Error(`Strength not found for trait ${traitScore.traitId}`);
+      
+      // Calculate average score (total score / appearances)
+      const averageScore = traitScore.appearances > 0 ? traitScore.totalScore / traitScore.appearances : 0;
+      
+      return {
+        strength,
+        score: averageScore
+      };
+    });
+    
+    const result: UserResult = {
+      topStrengths
+    };
+    
+    // Generate category results
+    generateCategoryResults(traitScoresCalculated);
+    
     setResults(result);
     
     // Save to localStorage
