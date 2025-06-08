@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { strengths } from '@/data/strengths';
-import { UserResult } from '@/models/strength';
+import { UserResult, CategoryResult } from '@/models/strength';
 import { useAuth } from './AuthContext';
 import { 
   StatementPair, 
@@ -21,11 +21,7 @@ interface PairedTestContextType {
   resetTest: () => void;
   results: UserResult | null;
   traitScores: TraitScore[] | null;
-  categoryResults: {
-    category: string;
-    displayName: string;
-    strengths: { strength: any; score: number; }[];
-  }[] | null;
+  categoryResults: CategoryResult[] | null;
   testHistory: {
     id: string;
     testDate: string;
@@ -51,7 +47,7 @@ export const PairedTestProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [responses, setResponses] = useState<PairResponse[]>([]);
   const [results, setResults] = useState<UserResult | null>(null);
   const [traitScores, setTraitScores] = useState<TraitScore[] | null>(null);
-  const [categoryResults, setCategoryResults] = useState<{category: string; displayName: string; strengths: {strength: any; score: number;}[]}[] | null>(null);
+  const [categoryResults, setCategoryResults] = useState<CategoryResult[] | null>(null);
   const [testHistory, setTestHistory] = useState<{id: string; testDate: string; results: UserResult}[] | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const { user } = useAuth();
@@ -143,7 +139,7 @@ export const PairedTestProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       });
     });
     
-    // Sort each category by score and create display names
+    // Sort each category by score and create display names with proper typing
     const categoryDisplayNames: Record<string, string> = {
       "thinking-learning": "Thinking & Learning",
       "interpersonal": "Interpersonal",
@@ -152,8 +148,8 @@ export const PairedTestProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       "identity-purpose-values": "Identity, Purpose & Values"
     };
     
-    const categoriesArray = Array.from(categoryMap.entries()).map(([category, strengths]) => ({
-      category,
+    const categoriesArray: CategoryResult[] = Array.from(categoryMap.entries()).map(([category, strengths]) => ({
+      category: category as any, // Cast to StrengthCategory type
       displayName: categoryDisplayNames[category] || category,
       strengths: strengths.sort((a, b) => b.score - a.score)
     }));

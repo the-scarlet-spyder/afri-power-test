@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTest } from '@/context/TestContext';
@@ -42,8 +43,8 @@ const Results = () => {
     testHistory: pairedTest.testHistory
   };
   
-  // Add getCategoryName function for paired test
-  const getCategoryName = (category: string): string => {
+  // Get getCategoryName function from the appropriate context
+  const getCategoryName = hasOriginalResults ? originalTest.getCategoryName : (category: string): string => {
     const categoryDisplayNames: Record<string, string> = {
       "thinking-learning": "Thinking & Learning",
       "interpersonal": "Interpersonal", 
