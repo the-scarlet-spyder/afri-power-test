@@ -180,7 +180,16 @@ const Results = () => {
     if (!results) {
       toast({
         title: "Error",
-        description: "Please make sure you have completed the test and entered your name.",
+        description: "Please make sure you have completed the test.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!userName.trim()) {
+      toast({
+        title: "Name Required",
+        description: "Please enter your name before generating the report.",
         variant: "destructive",
       });
       return;
@@ -194,6 +203,8 @@ const Results = () => {
     
     try {
       const transformedResults = transformResultsForReports(results);
+      console.log("Transformed results for report:", transformedResults);
+      
       await generateAdvancedReportPDF(
         userName,
         transformedResults,
