@@ -110,6 +110,17 @@ const Results = () => {
     return `AR-${Math.floor(100000 + Math.random() * 900000)}`;
   };
 
+  // Transform UserResult to the format expected by report components
+  const transformResultsForReports = (userResult: any) => {
+    if (!userResult || !userResult.topStrengths) return [];
+    
+    return userResult.topStrengths.map((item: any) => ({
+      strength: item.strength.name,
+      score: item.score,
+      category: item.strength.category
+    }));
+  };
+
   // Function to download the certificate as PDF
   const downloadCertificatePDF = async () => {
     if (!certificateRef.current || !results) {
@@ -182,9 +193,10 @@ const Results = () => {
     });
     
     try {
+      const transformedResults = transformResultsForReports(results);
       await generateAdvancedReportPDF(
         userName,
-        results,
+        transformedResults,
         reportId,
         () => {
           toast({
@@ -374,7 +386,7 @@ const Results = () => {
         <AdvancedReport 
           ref={reportRef}
           userName={userName || "Your Name"}
-          results={results}
+          results={transformResultsForReports(results)}
           getCategoryName={getCategoryName}
           reportId={reportId}
         />
