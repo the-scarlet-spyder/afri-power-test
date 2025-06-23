@@ -1,21 +1,27 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserResponse, UserResult, Strength, CategoryResult, StrengthCategory } from '../models/strength';
+import { DiscResponse, DiscResult, calculateDiscResults } from '../data/disc';
 import { questions, strengths, getCategoryDisplayName } from '../data/strengths';
+import { discQuestions } from '../data/disc';
 import { useAuth } from './AuthContext';
 import { saveTestResults, getLatestTestResult, getAllTestResults } from '@/lib/test-service';
 import { toast } from '@/components/ui/use-toast';
 
 interface TestContextType {
   responses: UserResponse[];
+  discResponses: DiscResponse[];
   currentQuestionIndex: number;
   addResponse: (response: UserResponse) => void;
+  addDiscResponse: (response: DiscResponse) => void;
   calculateResults: () => Promise<UserResult | null>;
   resetTest: () => void;
   results: UserResult | null;
+  discResults: DiscResult | null;
   categoryResults: CategoryResult[] | null;
   getCategoryName: (category: StrengthCategory) => string;
   getCurrentCategory: () => string;
+  isDiscSection: boolean;
   testHistory: {
     id: string;
     testDate: string;
@@ -23,6 +29,7 @@ interface TestContextType {
   }[] | null;
   loadingHistory: boolean;
   fetchTestHistory: () => Promise<void>;
+  totalQuestions: number;
 }
 
 const TestContext = createContext<TestContextType | undefined>(undefined);
@@ -37,12 +44,17 @@ export const useTest = () => {
 
 export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [responses, setResponses] = useState<UserResponse[]>([]);
+  const [discResponses, setDiscResponses] = useState<DiscResponse[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [results, setResults] = useState<UserResult | null>(null);
+  const [discResults, setDiscResults] = useState<DiscResult | null>(null);
   const [categoryResults, setCategoryResults] = useState<CategoryResult[] | null>(null);
   const [testHistory, setTestHistory] = useState<{id: string; testDate: string; results: UserResult}[] | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const { user } = useAuth();
+
+  const totalQuestions = questions.length + discQuestions.length;
+  const isDiscSection = currentQuestionIndex >= questions.length;
 
   // Load latest test results if available
   useEffect(() => {
@@ -61,14 +73,24 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         // Try loading from localStorage if user is not logged in
         const storedResults = localStorage.getItem('inuka_results');
+        const storedDiscResults = localStorage.getItem('inuka_disc_results');
         const storedCategoryResults = localStorage.getItem('inuka_category_results');
         const storedResponses = localStorage.getItem('inuka_responses');
+        const storedDiscResponses = localStorage.getItem('inuka_disc_responses');
         
         if (storedResults) {
           try {
             setResults(JSON.parse(storedResults));
           } catch (e) {
             console.error("Failed to parse stored results:", e);
+          }
+        }
+        
+        if (storedDiscResults) {
+          try {
+            setDiscResults(JSON.parse(storedDiscResults));
+          } catch (e) {
+            console.error("Failed to parse stored DISC results:", e);
           }
         }
         
@@ -85,6 +107,14 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setResponses(JSON.parse(storedResponses));
           } catch (e) {
             console.error("Failed to parse stored responses:", e);
+          }
+        }
+        
+        if (storedDiscResponses) {
+          try {
+            setDiscResponses(JSON.parse(storedDiscResponses));
+          } catch (e) {
+            console.error("Failed to parse stored DISC responses:", e);
           }
         }
       }
@@ -111,13 +141,35 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('inuka_responses', JSON.stringify(newResponses));
     
     // Move to the next question if available
-    if (currentQuestionIndex < questions.length - 1) {
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
+  const addDiscResponse = (response: DiscResponse) => {
+    const existingIndex = discResponses.findIndex(r => r.questionId === response.questionId);
+    
+    let newResponses: DiscResponse[];
+    if (existingIndex >= 0) {
+      newResponses = [...discResponses];
+      newResponses[existingIndex] = response;
+      setDiscResponses(newResponses);
+    } else {
+      newResponses = [...discResponses, response];
+      setDiscResponses(newResponses);
+    }
+    
+    // Save to localStorage as backup
+    localStorage.setItem('inuka_disc_responses', JSON.stringify(newResponses));
+    
+    // Move to the next question if available
+    if (currentQuestionIndex < totalQuestions - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
 
   const calculateResults = async () => {
-    // Create a map to store strength scores
+    // Calculate strengths results
     const strengthScores = new Map<string, { total: number, count: number }>();
     
     // Initialize the map with all strengths
@@ -157,6 +209,9 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
       topStrengths
     };
     
+    // Calculate DISC results
+    const discResult = calculateDiscResults(discResponses);
+    
     // Group results by category
     const categoriesMap = new Map<StrengthCategory, {
       displayName: string,
@@ -184,10 +239,12 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }));
     
     setResults(result);
+    setDiscResults(discResult);
     setCategoryResults(categoriesResults);
     
     // Save to localStorage as backup
     localStorage.setItem('inuka_results', JSON.stringify(result));
+    localStorage.setItem('inuka_disc_results', JSON.stringify(discResult));
     localStorage.setItem('inuka_category_results', JSON.stringify(categoriesResults));
     
     // Save to Supabase if user is logged in
@@ -239,11 +296,15 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetTest = () => {
     setResponses([]);
+    setDiscResponses([]);
     setCurrentQuestionIndex(0);
     setResults(null);
+    setDiscResults(null);
     setCategoryResults(null);
     localStorage.removeItem('inuka_responses');
+    localStorage.removeItem('inuka_disc_responses');
     localStorage.removeItem('inuka_results');
+    localStorage.removeItem('inuka_disc_results');
     localStorage.removeItem('inuka_category_results');
   };
 
@@ -252,6 +313,10 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const getCurrentCategory = (): string => {
+    if (isDiscSection) {
+      return "Behavioral Style Assessment";
+    }
+    
     if (currentQuestionIndex < questions.length) {
       const currentQuestion = questions[currentQuestionIndex];
       const strength = strengths.find(s => s.id === currentQuestion.strengthId);
@@ -265,18 +330,23 @@ export const TestProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <TestContext.Provider 
       value={{ 
-        responses, 
+        responses,
+        discResponses,
         currentQuestionIndex, 
-        addResponse, 
+        addResponse,
+        addDiscResponse,
         calculateResults,
         resetTest,
         results,
+        discResults,
         categoryResults,
         getCategoryName,
         getCurrentCategory,
+        isDiscSection,
         testHistory,
         loadingHistory,
-        fetchTestHistory
+        fetchTestHistory,
+        totalQuestions
       }}
     >
       {children}
