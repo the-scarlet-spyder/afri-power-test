@@ -17,7 +17,12 @@ const AuthGuard = ({
 }: AuthGuardProps) => {
   const { user, isLoading } = useAuth();
   
-  console.log("AuthGuard state:", { user, isLoading, requireAuth });
+  console.log("AuthGuard state:", { 
+    user: user ? { id: user.id, email: user.email } : null, 
+    isLoading, 
+    requireAuth,
+    redirectPath 
+  });
   
   // Show loading state when authentication status is being checked
   if (isLoading) {

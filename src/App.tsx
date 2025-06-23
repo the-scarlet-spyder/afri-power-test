@@ -69,6 +69,13 @@ const App = () => (
                 <Route path="/test" element={
                   <AuthGuard>
                     <PaymentGuard>
+                      <Test />
+                    </PaymentGuard>
+                  </AuthGuard>
+                } />
+                <Route path="/paired-test" element={
+                  <AuthGuard>
+                    <PaymentGuard>
                       <PairedTest />
                     </PaymentGuard>
                   </AuthGuard>

@@ -17,11 +17,15 @@ const NotFound = () => {
   }, [location.pathname]);
 
   const handleGoHome = () => {
-    navigate('/');
+    navigate('/', { replace: true });
   };
 
   const handleGoBack = () => {
-    navigate(-1);
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/', { replace: true });
+    }
   };
 
   return (
@@ -35,6 +39,9 @@ const NotFound = () => {
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Page Not Found</h2>
             <p className="text-gray-600 mb-6">
               The page you're looking for doesn't exist or has been moved.
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              Path: {location.pathname}
             </p>
           </div>
           
