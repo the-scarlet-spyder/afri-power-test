@@ -195,7 +195,7 @@ const Test = () => {
                 ) : (
                   <div className="mb-8 pt-2">
                     <h2 className="text-xl font-medium mb-10 text-inuka-charcoal text-center font-poppins">
-                      {currentQuestion.text}
+                      {(currentQuestion as any).text}
                     </h2>
                     
                     <div className="space-y-8 px-4 py-6">
