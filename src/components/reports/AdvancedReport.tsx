@@ -14,18 +14,6 @@ interface AdvancedReportProps {
   reportId: string;
 }
 
-const pageBreakStyle = {
-  pageBreakAfter: 'always' as const,
-  breakAfter: 'page' as const,
-  minHeight: '100vh',
-  padding: '2rem',
-};
-
-const lastPageStyle = {
-  minHeight: '100vh',
-  padding: '2rem',
-};
-
 const AdvancedReport = forwardRef<HTMLDivElement, AdvancedReportProps>(
   ({ userName, results, getCategoryName, reportId }, ref) => {
     const currentDate = format(new Date(), "MMMM d, yyyy");
@@ -34,16 +22,10 @@ const AdvancedReport = forwardRef<HTMLDivElement, AdvancedReportProps>(
     return (
       <div ref={ref} className="bg-white max-w-4xl mx-auto">
         {/* Page 1: Cover Page */}
-        <div
-          className="flex flex-col justify-center items-center text-center border-b"
-          style={pageBreakStyle}
-        >
+        <div className="page flex flex-col justify-center items-center text-center border-b">
           <div className="mb-8">
-            {/* Placeholder for logo or graphic */}
             <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto mb-4" />
-            <h1 className="text-4xl font-bold text-inuka-crimson mb-2">
-              Strengths Africa
-            </h1>
+            <h1 className="text-4xl font-bold text-inuka-crimson mb-2">Strengths Africa</h1>
             <p className="text-2xl text-gray-700">Advanced Talent Report</p>
           </div>
 
@@ -59,11 +41,9 @@ const AdvancedReport = forwardRef<HTMLDivElement, AdvancedReportProps>(
         </div>
 
         {/* Page 2: Executive Summary */}
-        <div className="border-b" style={pageBreakStyle}>
+        <div className="page border-b">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-inuka-crimson mb-2">
-              Executive Summary
-            </h1>
+            <h1 className="text-3xl font-bold text-inuka-crimson mb-2">Executive Summary</h1>
             <Separator className="my-4" />
           </div>
 
@@ -124,11 +104,9 @@ const AdvancedReport = forwardRef<HTMLDivElement, AdvancedReportProps>(
         </div>
 
         {/* Page 3: Detailed Analysis */}
-        <div className="border-b" style={pageBreakStyle}>
+        <div className="page border-b">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-inuka-crimson mb-2">
-              Detailed Analysis
-            </h1>
+            <h1 className="text-3xl font-bold text-inuka-crimson mb-2">Detailed Analysis</h1>
             <Separator className="my-4" />
           </div>
 
@@ -167,11 +145,9 @@ const AdvancedReport = forwardRef<HTMLDivElement, AdvancedReportProps>(
         </div>
 
         {/* Page 4: Recommendations */}
-        <div className="border-b" style={pageBreakStyle}>
+        <div className="page border-b">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-inuka-crimson mb-2">
-              Development Plan
-            </h1>
+            <h1 className="text-3xl font-bold text-inuka-crimson mb-2">Development Plan</h1>
             <Separator className="my-4" />
           </div>
 
@@ -201,11 +177,9 @@ const AdvancedReport = forwardRef<HTMLDivElement, AdvancedReportProps>(
         </div>
 
         {/* Page 5: Closing */}
-        <div className="flex flex-col" style={lastPageStyle}>
+        <div className="last-page">
           <div className="text-center mb-12">
-            <h1 className="text-3xl font-bold text-inuka-crimson mb-2">
-              Next Steps
-            </h1>
+            <h1 className="text-3xl font-bold text-inuka-crimson mb-2">Next Steps</h1>
             <Separator className="my-4" />
           </div>
 
@@ -216,18 +190,9 @@ const AdvancedReport = forwardRef<HTMLDivElement, AdvancedReportProps>(
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  <li className="flex items-start">
-                    <span className="mr-2">•</span>
-                    <span>Strengths Development Workbook</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2">•</span>
-                    <span>Monthly Coaching Sessions</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2">•</span>
-                    <span>Online Learning Portal Access</span>
-                  </li>
+                  <li className="flex items-start"><span className="mr-2">•</span><span>Strengths Development Workbook</span></li>
+                  <li className="flex items-start"><span className="mr-2">•</span><span>Monthly Coaching Sessions</span></li>
+                  <li className="flex items-start"><span className="mr-2">•</span><span>Online Learning Portal Access</span></li>
                 </ul>
               </CardContent>
             </Card>
