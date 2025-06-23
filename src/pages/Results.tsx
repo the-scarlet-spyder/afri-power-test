@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { toast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
 import Certificate from '@/components/Certificate';
 import { format } from 'date-fns';
 import { saveCertificate } from '@/lib/test-service';
@@ -15,6 +16,7 @@ import { saveCertificate } from '@/lib/test-service';
 import ResultsTopStrengths from '@/components/results/ResultsTopStrengths';
 import NextSteps from '@/components/results/NextSteps';
 import CertificateDownload from '@/components/results/CertificateDownload';
+import AdvancedReport from '@/components/reports/AdvancedReport';
 
 // Import utility functions
 import { 
@@ -23,6 +25,7 @@ import {
   getCategoryColor 
 } from '@/utils/styleUtils';
 import { generateCertificatePDF } from '@/utils/certificatePDFGenerator';
+import { generateAdvancedReportPDF } from '@/utils/advancedReportPDFGenerator';
 
 const Results = () => {
   // Try both contexts - use whichever has results
@@ -61,8 +64,11 @@ const Results = () => {
   const testId = searchParams.get('test');
   const [userName, setUserName] = useState<string>("");
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [certificateId, setCertificateId] = useState<string>("");
+  const [reportId, setReportId] = useState<string>("");
   const certificateRef = useRef<HTMLDivElement>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     console.log("Results changed:", results);
@@ -84,8 +90,9 @@ const Results = () => {
       }
     }
     
-    // Generate a certificate ID
+    // Generate IDs
     setCertificateId(generateCertificateId());
+    setReportId(generateReportId());
   }, [results, navigate, user, testHistory]);
   
   const handleRetake = () => {
@@ -98,8 +105,13 @@ const Results = () => {
     return `SA-${Math.floor(100000 + Math.random() * 900000)}`;
   };
 
+  // Function to generate a unique report ID
+  const generateReportId = () => {
+    return `AR-${Math.floor(100000 + Math.random() * 900000)}`;
+  };
+
   // Function to download the certificate as PDF
-  const downloadPDF = async () => {
+  const downloadCertificatePDF = async () => {
     if (!certificateRef.current || !results) {
       toast({
         title: "Error",
@@ -147,6 +159,56 @@ const Results = () => {
       toast({
         title: "Error generating certificate",
         description: "There was a problem creating your PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Function to download the advanced report as PDF
+  const downloadAdvancedReportPDF = async () => {
+    if (!results) {
+      toast({
+        title: "Error",
+        description: "Please make sure you have completed the test and entered your name.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsGeneratingReport(true);
+    toast({
+      title: "Generating your advanced report",
+      description: "Please wait while we prepare your detailed report...",
+    });
+    
+    try {
+      await generateAdvancedReportPDF(
+        userName,
+        results,
+        reportId,
+        () => {
+          toast({
+            title: "Advanced Report Downloaded",
+            description: "Your detailed report has been successfully downloaded.",
+          });
+          setIsGeneratingReport(false);
+        },
+        (error) => {
+          console.error("Error generating advanced report:", error);
+          toast({
+            title: "Error generating report",
+            description: "There was a problem creating your report. Please try again.",
+            variant: "destructive",
+          });
+          setIsGeneratingReport(false);
+        }
+      );
+    } catch (error) {
+      console.error("Error in report generation:", error);
+      setIsGeneratingReport(false);
+      toast({
+        title: "Error generating report",
+        description: "There was a problem creating your report. Please try again.",
         variant: "destructive",
       });
     }
@@ -239,14 +301,59 @@ const Results = () => {
             
             <NextSteps />
             
-            <CertificateDownload 
-              userName={userName}
-              setUserName={setUserName}
-              isGeneratingPDF={isGeneratingPDF}
-              downloadPDF={downloadPDF}
-              handleRetake={handleRetake}
-              certificateId={certificateId}
-            />
+            <div className="bg-white p-6 rounded-lg shadow-sm mb-8 border border-muted">
+              <h3 className="text-xl font-semibold text-inuka-crimson mb-3 font-poppins">Download Your Documents</h3>
+              <p className="text-gray-700 mb-4">
+                Enter your full name as you would like it to appear on your documents.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                <input 
+                  type="text" 
+                  placeholder="Enter your full name" 
+                  value={userName} 
+                  onChange={(e) => {
+                    setUserName(e.target.value);
+                    localStorage.setItem('user_name', e.target.value);
+                  }}
+                  className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+              
+              <div className="flex items-center text-sm text-gray-600 mt-2 space-x-4">
+                <span className="inline-flex items-center">
+                  <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                  Certificate ID: {certificateId}
+                </span>
+                <span className="inline-flex items-center">
+                  <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
+                  Report ID: {reportId}
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+              <Button 
+                onClick={downloadCertificatePDF}
+                disabled={isGeneratingPDF || !userName.trim()}
+                className="bg-inuka-gold text-inuka-charcoal hover:bg-opacity-90"
+              >
+                {isGeneratingPDF ? "Generating PDF..." : "Download Certificate"}
+              </Button>
+              <Button 
+                onClick={downloadAdvancedReportPDF}
+                disabled={isGeneratingReport || !userName.trim()}
+                className="bg-inuka-crimson text-white hover:bg-opacity-90"
+              >
+                {isGeneratingReport ? "Generating Report..." : "Download Advanced Report"}
+              </Button>
+              <Button 
+                onClick={handleRetake}
+                variant="outline" 
+                className="border-inuka-crimson text-inuka-crimson hover:bg-inuka-crimson hover:text-white"
+              >
+                Retake Test
+              </Button>
+            </div>
           </div>
         </div>
       </main>
@@ -259,6 +366,17 @@ const Results = () => {
           results={results}
           date={format(new Date(), "MMMM d, yyyy")}
           certificateId={certificateId}
+        />
+      </div>
+
+      {/* Hidden advanced report component for PDF generation */}
+      <div id="advanced-report" className="hidden">
+        <AdvancedReport 
+          ref={reportRef}
+          userName={userName || "Your Name"}
+          results={results}
+          getCategoryName={getCategoryName}
+          reportId={reportId}
         />
       </div>
       
