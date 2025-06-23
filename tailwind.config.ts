@@ -113,5 +113,16 @@ export default {
 			}
 		}
 	},
+	  display: ["group-hover"],
+  // Add custom utilities for PDF page breaking
+  utilities: {
+    '.page': {
+      '@apply break-after-page min-h-[100vh] p-8 bg-white': {}
+    },
+    '.last-page': {
+      '@apply min-h-[100vh] p-8 bg-white': {}
+    }
+  },
+},
 	plugins: [require("tailwindcss-animate")],
 } satisfies Config;
