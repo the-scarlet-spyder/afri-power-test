@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTest } from '@/context/TestContext';
@@ -22,7 +23,6 @@ import {
   getCategoryColor 
 } from '@/utils/styleUtils';
 import { generateCertificatePDF } from '@/utils/certificatePDFGenerator';
-import { getDiscStyleName, getDiscStyleDescription } from '@/data/disc';
 
 const Results = () => {
   // Try both contexts - use whichever has results
@@ -37,11 +37,10 @@ const Results = () => {
   console.log("Paired test results:", pairedTest.results);
   
   // Use the appropriate context
-  const { results, resetTest, testHistory, discResults } = hasOriginalResults ? originalTest : {
+  const { results, resetTest, testHistory } = hasOriginalResults ? originalTest : {
     results: pairedTest.results,
     resetTest: pairedTest.resetTest,
-    testHistory: pairedTest.testHistory,
-    discResults: null
+    testHistory: pairedTest.testHistory
   };
   
   // Get getCategoryName function from the appropriate context
@@ -221,11 +220,11 @@ const Results = () => {
           <div className="max-w-4xl mx-auto">
             <header className="mb-12 text-center md:text-left">
               <h1 className="text-3xl md:text-4xl font-bold text-inuka-crimson mb-4 font-poppins">
-                Your Complete Strength Africa Report
+                Your Strength Africa Report
               </h1>
               
               <p className="text-lg text-inuka-charcoal">
-                Based on your responses, we've identified your top 5 strengths and behavioral style. These represent your natural abilities that, when cultivated, can lead to exceptional performance and fulfillment.
+                Based on your responses, we've identified your top 5 strengths. These represent your natural abilities and tendencies that, when cultivated, can lead to exceptional performance and fulfillment.
               </p>
             </header>
             
@@ -237,53 +236,6 @@ const Results = () => {
                 getCategoryBadgeClass={getCategoryBadgeClass}
               />
             </div>
-            
-            {/* DISC Results Section */}
-            {discResults && (
-              <div className="mb-12">
-                <div className="bg-white rounded-lg shadow-md p-8">
-                  <h2 className="text-2xl font-bold text-inuka-charcoal mb-6 font-poppins">
-                    Your Behavioral Style (DISC)
-                  </h2>
-                  
-                  <div className="grid md:grid-cols-2 gap-8 mb-8">
-                    <div className="text-center">
-                      <div className="inline-flex items-center justify-center w-20 h-20 bg-inuka-crimson text-white rounded-full text-2xl font-bold mb-4">
-                        {discResults.primaryStyle}
-                      </div>
-                      <h3 className="text-xl font-semibold text-inuka-charcoal mb-2">
-                        Primary Style: {getDiscStyleName(discResults.primaryStyle)}
-                      </h3>
-                      <p className="text-gray-600">
-                        {getDiscStyleDescription(discResults.primaryStyle)}
-                      </p>
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-600 text-white rounded-full text-2xl font-bold mb-4">
-                        {discResults.secondaryStyle}
-                      </div>
-                      <h3 className="text-xl font-semibold text-inuka-charcoal mb-2">
-                        Secondary Style: {getDiscStyleName(discResults.secondaryStyle)}
-                      </h3>
-                      <p className="text-gray-600">
-                        {getDiscStyleDescription(discResults.secondaryStyle)}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.entries(discResults).filter(([key]) => ['D', 'I', 'S', 'C'].includes(key)).map(([style, score]) => (
-                      <div key={style} className="text-center p-4 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold text-inuka-charcoal">{style}</div>
-                        <div className="text-sm text-gray-600 mb-2">{getDiscStyleName(style as 'D' | 'I' | 'S' | 'C')}</div>
-                        <div className="text-lg font-semibold text-inuka-crimson">{score}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
             
             <NextSteps />
             
