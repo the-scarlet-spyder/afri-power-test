@@ -35,10 +35,16 @@ const Test = () => {
   const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
   const currentCategory = getCurrentCategory();
   
-  // Determine current question
-  const currentQuestion = isDiscSection 
-    ? discQuestions[currentQuestionIndex - questions.length]
-    : questions[currentQuestionIndex];
+  // Get the current question based on section
+  const getCurrentQuestion = () => {
+    if (isDiscSection) {
+      return discQuestions[currentQuestionIndex - questions.length];
+    } else {
+      return questions[currentQuestionIndex];
+    }
+  };
+  
+  const currentQuestion = getCurrentQuestion();
   
   const handleNext = async () => {
     if (isDiscSection) {
