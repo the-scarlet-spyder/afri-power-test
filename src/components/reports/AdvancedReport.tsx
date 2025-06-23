@@ -1,3 +1,4 @@
+
 import React, { forwardRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -14,30 +15,15 @@ interface AdvancedReportProps {
   reportId: string;
 }
 
-const pageBreakStyle = {
-  pageBreakAfter: 'always' as const,
-  breakAfter: 'page' as const,
-  minHeight: '100vh',
-  padding: '2rem',
-};
-
-const lastPageStyle = {
-  minHeight: '100vh',
-  padding: '2rem',
-};
-
 const AdvancedReport = forwardRef<HTMLDivElement, AdvancedReportProps>(
   ({ userName, results, getCategoryName, reportId }, ref) => {
     const currentDate = format(new Date(), "MMMM d, yyyy");
     const topStrengths = [...results].sort((a, b) => b.score - a.score).slice(0, 5);
 
     return (
-      <div ref={ref} className="bg-white max-w-4xl mx-auto">
+      <div ref={ref} className="bg-white">
         {/* Page 1: Cover Page */}
-        <div
-          className="flex flex-col justify-center items-center text-center border-b"
-          style={pageBreakStyle}
-        >
+        <div className="report-page flex flex-col justify-center items-center text-center">
           <div className="mb-8">
             {/* Placeholder for logo or graphic */}
             <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto mb-4" />
@@ -59,7 +45,7 @@ const AdvancedReport = forwardRef<HTMLDivElement, AdvancedReportProps>(
         </div>
 
         {/* Page 2: Executive Summary */}
-        <div className="border-b" style={pageBreakStyle}>
+        <div className="report-page">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-inuka-crimson mb-2">
               Executive Summary
@@ -124,7 +110,7 @@ const AdvancedReport = forwardRef<HTMLDivElement, AdvancedReportProps>(
         </div>
 
         {/* Page 3: Detailed Analysis */}
-        <div className="border-b" style={pageBreakStyle}>
+        <div className="report-page">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-inuka-crimson mb-2">
               Detailed Analysis
@@ -167,7 +153,7 @@ const AdvancedReport = forwardRef<HTMLDivElement, AdvancedReportProps>(
         </div>
 
         {/* Page 4: Recommendations */}
-        <div className="border-b" style={pageBreakStyle}>
+        <div className="report-page">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-inuka-crimson mb-2">
               Development Plan
@@ -200,8 +186,8 @@ const AdvancedReport = forwardRef<HTMLDivElement, AdvancedReportProps>(
           </Card>
         </div>
 
-        {/* Page 5: Closing */}
-        <div className="flex flex-col" style={lastPageStyle}>
+        {/* Page 5: Next Steps */}
+        <div className="report-page">
           <div className="text-center mb-12">
             <h1 className="text-3xl font-bold text-inuka-crimson mb-2">
               Next Steps
@@ -209,7 +195,7 @@ const AdvancedReport = forwardRef<HTMLDivElement, AdvancedReportProps>(
             <Separator className="my-4" />
           </div>
 
-          <div className="flex-1 grid grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-2 gap-8 mb-8">
             <Card className="bg-inuka-offwhite">
               <CardHeader>
                 <CardTitle className="text-xl">Resources</CardTitle>

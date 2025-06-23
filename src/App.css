@@ -1,3 +1,4 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -41,13 +42,14 @@
   color: #888;
 }
 
-/* --- Added styles for page breaks --- */
-
+/* Enhanced page break styles for advanced reports */
 .report-page {
   min-height: 100vh;
   padding: 2rem;
-
-  /* Use modern break-after property with fallback */
+  display: flex;
+  flex-direction: column;
+  
+  /* Modern CSS page breaks */
   break-after: page;
   page-break-after: always;
 }
@@ -57,20 +59,54 @@
   page-break-after: auto;
 }
 
-/* Prevent breaking inside cards and charts */
+/* Prevent breaking inside important elements */
 .card, .chart {
   break-inside: avoid;
   page-break-inside: avoid;
 }
 
-/* Optional: improve print layout */
+/* Improved print layout */
 @media print {
   body {
     margin: 0;
+    padding: 0;
   }
+  
   .report-page {
     margin: 0;
+    padding: 1.5rem;
     box-shadow: none;
+    border: none;
+    width: 100%;
+    max-width: none;
+  }
+  
+  /* Ensure page breaks work in print */
+  .report-page {
+    page-break-before: always;
+    page-break-after: always;
+  }
+  
+  .report-page:first-child {
+    page-break-before: auto;
+  }
+  
+  .report-page:last-child {
+    page-break-after: auto;
+  }
+  
+  /* Hide any overflow that might cause issues */
+  * {
+    overflow: visible !important;
   }
 }
 
+/* Screen display improvements */
+@media screen {
+  .report-page {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    background: white;
+    border-radius: 8px;
+  }
+}
