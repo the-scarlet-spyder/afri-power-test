@@ -103,8 +103,8 @@ const Test = () => {
 
   const { badgeClass, progressClass } = getCategoryStyles();
   
-  // Show section transition
-  if (currentQuestionIndex === questions.length && isDiscSection) {
+  // Show section transition when we complete the strengths section
+  if (currentQuestionIndex === questions.length && !isDiscSection) {
     return (
       <div className="min-h-screen flex flex-col bg-[#F9F9F9] font-inter">
         <Navbar />
