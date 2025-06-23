@@ -40,3 +40,37 @@
 .read-the-docs {
   color: #888;
 }
+
+/* --- Added styles for page breaks --- */
+
+.report-page {
+  min-height: 100vh;
+  padding: 2rem;
+
+  /* Use modern break-after property with fallback */
+  break-after: page;
+  page-break-after: always;
+}
+
+.report-page:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
+/* Prevent breaking inside cards and charts */
+.card, .chart {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Optional: improve print layout */
+@media print {
+  body {
+    margin: 0;
+  }
+  .report-page {
+    margin: 0;
+    box-shadow: none;
+  }
+}
+
