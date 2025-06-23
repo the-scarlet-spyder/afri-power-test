@@ -21,227 +21,331 @@ const AdvancedReport = forwardRef<HTMLDivElement, AdvancedReportProps>(
     const topStrengths = [...results].sort((a, b) => b.score - a.score).slice(0, 5);
 
     return (
-      <div ref={ref} className="bg-white">
-        {/* Page 1: Cover Page */}
-        <div className="report-page flex flex-col justify-center items-center text-center">
-          <div className="mb-8">
-            {/* Placeholder for logo or graphic */}
-            <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto mb-4" />
-            <h1 className="text-4xl font-bold text-inuka-crimson mb-2">
-              Strengths Africa
-            </h1>
-            <p className="text-2xl text-gray-700">Advanced Talent Report</p>
+      <div ref={ref} className="bg-white font-inter">
+        {/* Page 1: Enhanced Cover Page */}
+        <div className="report-page flex flex-col justify-between bg-gradient-to-br from-inuka-offwhite via-white to-gray-50">
+          <div className="flex-1 flex flex-col justify-center items-center text-center px-12">
+            {/* Header with Logo Area */}
+            <div className="mb-12">
+              <div className="w-24 h-24 bg-gradient-to-br from-inuka-crimson to-red-600 rounded-full mx-auto mb-6 flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-2xl">SA</span>
+              </div>
+              <h1 className="text-5xl font-bold text-inuka-crimson mb-3 font-poppins">
+                Strengths Africa
+              </h1>
+              <div className="w-32 h-1 bg-inuka-gold mx-auto mb-4"></div>
+              <p className="text-2xl text-gray-700 font-medium">Advanced Talent Assessment Report</p>
+            </div>
+
+            {/* User Information Card */}
+            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 max-w-md w-full">
+              <h2 className="text-3xl font-bold text-gray-800 mb-3 font-poppins">{userName}</h2>
+              <div className="space-y-2 text-gray-600">
+                <p className="text-lg">Assessment Date: {currentDate}</p>
+                <p className="text-sm font-mono bg-gray-100 px-3 py-1 rounded">ID: {reportId}</p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>Total Strengths Assessed</span>
+                  <span className="font-semibold">{results.length}</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="my-12">
-            <h2 className="text-3xl font-semibold mb-4">{userName}</h2>
-            <p className="text-xl text-gray-600">Generated on {currentDate}</p>
-            <p className="text-gray-500 mt-2">Report ID: {reportId}</p>
-          </div>
-
-          <div className="mt-auto pt-8">
-            <p className="text-gray-500">Confidential Report • © 2024 Strengths Africa</p>
+          {/* Footer */}
+          <div className="text-center py-6 border-t border-gray-200">
+            <p className="text-gray-500 text-sm">Confidential Report • © 2024 Strengths Africa • All Rights Reserved</p>
           </div>
         </div>
 
-        {/* Page 2: Executive Summary */}
+        {/* Page 2: Enhanced Executive Summary */}
         <div className="report-page">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-inuka-crimson mb-2">
-              Executive Summary
-            </h1>
-            <Separator className="my-4" />
+          <div className="mb-8">
+            <div className="flex items-center mb-6">
+              <div className="w-2 h-12 bg-inuka-crimson mr-4"></div>
+              <h1 className="text-4xl font-bold text-inuka-crimson font-poppins">Executive Summary</h1>
+            </div>
+            <Separator className="mb-8" />
           </div>
 
-          <Card className="mb-8">
-            <CardContent className="p-6">
-              <p className="text-gray-700 leading-relaxed mb-6">
-                This comprehensive analysis identifies your core talent patterns across 
-                five key strength domains. Your unique profile reveals actionable insights 
-                for personal and professional development.
-              </p>
+          <div className="grid grid-cols-3 gap-6 mb-8">
+            <div className="col-span-2">
+              <Card className="h-full border-l-4 border-l-inuka-crimson">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold mb-4 text-gray-800 font-poppins">Assessment Overview</h3>
+                  <p className="text-gray-700 leading-relaxed mb-6">
+                    This comprehensive strengths assessment has identified your unique talent patterns across five core domains. 
+                    Your results reveal a distinctive profile that can guide strategic career decisions and personal development initiatives.
+                  </p>
+                  <div className="bg-gradient-to-r from-inuka-offwhite to-gray-50 p-5 rounded-lg">
+                    <h4 className="font-semibold text-gray-800 mb-3">Key Insights</h4>
+                    <ul className="space-y-2 text-sm text-gray-700">
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-inuka-crimson rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        Your strongest domain shows {topStrengths[0].score > 6 ? 'exceptional' : 'strong'} capabilities
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-inuka-gold rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        Top 3 strengths present leadership development opportunities
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                        Balanced profile across multiple strength categories
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-              <div className="bg-inuka-offwhite p-6 rounded-lg">
-                <h3 className="font-semibold text-lg mb-4">Key Highlights</h3>
-                <ul className="space-y-3">
-                  {topStrengths.map((strength, index) => (
-                    <li key={index} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0">
-                      <div className="flex items-center">
-                        <span className="bg-inuka-crimson text-white rounded-full w-6 h-6 flex items-center justify-center mr-3">
-                          {index + 1}
-                        </span>
-                        <span>{strength.strength}</span>
+            <div>
+              <Card className="mb-4 bg-gradient-to-br from-inuka-crimson to-red-600 text-white">
+                <CardContent className="p-4 text-center">
+                  <h4 className="font-bold text-lg mb-2">Overall Score</h4>
+                  <div className="text-3xl font-bold">
+                    {(results.reduce((sum, r) => sum + r.score, 0) / results.length).toFixed(1)}
+                  </div>
+                  <p className="text-sm opacity-90">Average Strength Rating</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-br from-inuka-gold to-yellow-500 text-white">
+                <CardContent className="p-4 text-center">
+                  <h4 className="font-bold text-lg mb-2">Top Category</h4>
+                  <div className="text-lg font-semibold leading-tight">
+                    {getCategoryName(topStrengths[0].category)}
+                  </div>
+                  <p className="text-sm opacity-90 mt-1">{topStrengths[0].score.toFixed(1)}/7 Score</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          <Card className="bg-white border border-gray-200 shadow-sm">
+            <CardHeader className="bg-gray-50 border-b">
+              <CardTitle className="text-xl font-poppins text-gray-800">Top 5 Strengths Ranking</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {topStrengths.map((strength, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-inuka-crimson text-white rounded-full flex items-center justify-center font-bold mr-4">
+                        {index + 1}
                       </div>
-                      <span className="font-medium bg-white px-3 py-1 rounded-full">
-                        {strength.score.toFixed(1)}/7
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                      <div>
+                        <h4 className="font-semibold text-gray-800">{strength.strength}</h4>
+                        <p className="text-sm text-gray-600">{getCategoryName(strength.category)}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-inuka-crimson">{strength.score.toFixed(1)}</div>
+                      <div className="text-xs text-gray-500">out of 7</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
-
-          <div className="grid grid-cols-2 gap-6 mt-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Pattern Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">
-                  Your strengths show a {topStrengths[0].score > 6 ? 'dominant' : 'balanced'} 
-                  pattern with particular emphasis on {getCategoryName(topStrengths[0].category)} abilities.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Development Potential</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">
-                  Your top 3 strengths present opportunities for leadership development 
-                  and specialized role alignment.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
         </div>
 
-        {/* Page 3: Detailed Analysis */}
+        {/* Page 3: Enhanced Detailed Analysis */}
         <div className="report-page">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-inuka-crimson mb-2">
-              Detailed Analysis
-            </h1>
-            <Separator className="my-4" />
+          <div className="mb-8">
+            <div className="flex items-center mb-6">
+              <div className="w-2 h-12 bg-inuka-crimson mr-4"></div>
+              <h1 className="text-4xl font-bold text-inuka-crimson font-poppins">Detailed Analysis</h1>
+            </div>
+            <Separator className="mb-8" />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">Strengths Profile</CardTitle>
+          <div className="grid grid-cols-2 gap-8 mb-8">
+            <Card className="border border-gray-200 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-inuka-crimson to-red-600 text-white">
+                <CardTitle className="text-xl font-poppins">Strengths Radar Profile</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6 bg-white">
                 <StrengthsRadarChart results={results} getCategoryName={getCategoryName} />
+                <p className="text-sm text-gray-600 mt-4 text-center">
+                  Radar visualization showing your capability distribution across all strength domains
+                </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">Category Distribution</CardTitle>
+            <Card className="border border-gray-200 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-inuka-gold to-yellow-500 text-white">
+                <CardTitle className="text-xl font-poppins">Category Distribution</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6 bg-white">
                 <CategoryBreakdownChart results={results} getCategoryName={getCategoryName} />
+                <p className="text-sm text-gray-600 mt-4 text-center">
+                  Proportional breakdown of your strengths by category
+                </p>
               </CardContent>
             </Card>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">Strength Benchmarking</CardTitle>
+          <Card className="border border-gray-200 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-gray-700 to-gray-800 text-white">
+              <CardTitle className="text-xl font-poppins">Comparative Strength Analysis</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6 bg-white">
+              <div className="mb-4">
+                <h4 className="font-semibold text-gray-800 mb-2">Individual Strength Benchmarking</h4>
+                <p className="text-sm text-gray-600 mb-4">
+                  Each strength is evaluated on a 7-point scale, with scores above 5.0 indicating strong natural abilities.
+                </p>
+              </div>
               <StrengthProgressBar results={results} getCategoryName={getCategoryName} />
-              <p className="text-sm text-gray-600 mt-4">
-                Comparative analysis shows your strongest capabilities in {topStrengths[0].strength} 
-                and {topStrengths[1].strength} relative to other domains.
-              </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Page 4: Recommendations */}
+        {/* Page 4: Enhanced Development Plan */}
         <div className="report-page">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-inuka-crimson mb-2">
-              Development Plan
-            </h1>
-            <Separator className="my-4" />
+          <div className="mb-8">
+            <div className="flex items-center mb-6">
+              <div className="w-2 h-12 bg-inuka-crimson mr-4"></div>
+              <h1 className="text-4xl font-bold text-inuka-crimson font-poppins">Development Roadmap</h1>
+            </div>
+            <Separator className="mb-8" />
           </div>
 
           <RecommendationsSection results={results} getCategoryName={getCategoryName} />
 
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle className="text-xl">Implementation Roadmap</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="border-l-4 border-inuka-crimson pl-4">
-                  <h3 className="font-semibold">Short-term (0-3 months)</h3>
-                  <p className="text-sm mt-2">Focus on applying {topStrengths[0].strength} in daily workflows</p>
+          <div className="mt-8 grid grid-cols-1 gap-6">
+            <Card className="border border-gray-200 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-inuka-midnight to-gray-800 text-white">
+                <CardTitle className="text-xl font-poppins">Implementation Timeline</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-green-600 font-bold text-xl">30</span>
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2">Immediate Focus</h3>
+                    <p className="text-sm text-gray-600">Apply {topStrengths[0].strength} in daily workflows and current projects</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-blue-600 font-bold text-xl">90</span>
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2">Short-term Development</h3>
+                    <p className="text-sm text-gray-600">Develop {topStrengths[1].strength} through mentorship and training</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <span className="text-purple-600 font-bold text-xl">180</span>
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2">Long-term Integration</h3>
+                    <p className="text-sm text-gray-600">Leadership development using all top 5 strengths</p>
+                  </div>
                 </div>
-                <div className="border-l-4 border-inuka-midnight pl-4">
-                  <h3 className="font-semibold">Mid-term (3-6 months)</h3>
-                  <p className="text-sm mt-2">Develop {topStrengths[1].strength} through mentorship</p>
-                </div>
-                <div className="border-l-4 border-inuka-sunshine pl-4">
-                  <h3 className="font-semibold">Long-term (6+ months)</h3>
-                  <p className="text-sm mt-2">Leadership integration of all top 5 strengths</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
-        {/* Page 5: Next Steps */}
+        {/* Page 5: Enhanced Next Steps */}
         <div className="report-page">
-          <div className="text-center mb-12">
-            <h1 className="text-3xl font-bold text-inuka-crimson mb-2">
-              Next Steps
-            </h1>
-            <Separator className="my-4" />
+          <div className="mb-8">
+            <div className="flex items-center mb-6">
+              <div className="w-2 h-12 bg-inuka-crimson mr-4"></div>
+              <h1 className="text-4xl font-bold text-inuka-crimson font-poppins">Next Steps & Resources</h1>
+            </div>
+            <Separator className="mb-8" />
           </div>
 
           <div className="grid grid-cols-2 gap-8 mb-8">
-            <Card className="bg-inuka-offwhite">
+            <Card className="border-l-4 border-l-inuka-gold shadow-lg">
               <CardHeader>
-                <CardTitle className="text-xl">Resources</CardTitle>
+                <CardTitle className="text-xl font-poppins text-gray-800">Development Resources</CardTitle>
               </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-start">
-                    <span className="mr-2">•</span>
-                    <span>Strengths Development Workbook</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2">•</span>
-                    <span>Monthly Coaching Sessions</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2">•</span>
-                    <span>Online Learning Portal Access</span>
-                  </li>
-                </ul>
+              <CardContent className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-inuka-crimson rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-sm font-bold">1</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">Personalized Coaching Sessions</h4>
+                    <p className="text-sm text-gray-600">One-on-one development with certified strengths coaches</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-inuka-gold rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-sm font-bold">2</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">Interactive Workbook</h4>
+                    <p className="text-sm text-gray-600">Structured exercises and reflection activities</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-sm font-bold">3</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">Online Learning Portal</h4>
+                    <p className="text-sm text-gray-600">Video content, assessments, and progress tracking</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-l-4 border-l-inuka-crimson shadow-lg">
               <CardHeader>
-                <CardTitle className="text-xl">Connect With Us</CardTitle>
+                <CardTitle className="text-xl font-poppins text-gray-800">Get Started Today</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="mb-4">Book your complimentary consultation:</p>
-                <div className="space-y-2 text-sm">
-                  <div>consulting@strengthsafrica.com</div>
-                  <div>+27 21 123 4567</div>
-                  <div>www.strengthsafrica.com</div>
+                <div className="bg-gradient-to-r from-inuka-offwhite to-gray-50 p-6 rounded-lg mb-4">
+                  <h4 className="font-semibold mb-3">Schedule Your Consultation</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center">
+                      <span className="w-2 h-2 bg-inuka-crimson rounded-full mr-3"></span>
+                      <span>consulting@strengthsafrica.com</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-2 h-2 bg-inuka-gold rounded-full mr-3"></span>
+                      <span>+27 21 123 4567</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-2 h-2 bg-gray-500 rounded-full mr-3"></span>
+                      <span>www.strengthsafrica.com</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="bg-inuka-crimson text-white px-6 py-3 rounded-lg font-semibold">
+                    Complimentary 30-Minute Session Available
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          <div className="mt-auto pt-12 text-center">
-            <div className="mb-4">
-              <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto" />
+          <div className="bg-gradient-to-r from-gray-50 to-inuka-offwhite p-8 rounded-xl border border-gray-200">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-inuka-crimson to-red-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <span className="text-white font-bold text-2xl">SA</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2 font-poppins">Your Strengths Journey Starts Here</h3>
+              <p className="text-gray-600 mb-4 max-w-2xl mx-auto">
+                This assessment is your foundation for ongoing development. Remember that strengths grow through intentional practice and application.
+              </p>
+              <div className="flex justify-center space-x-8 text-sm text-gray-500">
+                <span>Report ID: {reportId}</span>
+                <span>Generated: {currentDate}</span>
+                <span>Valid for: {userName}</span>
+              </div>
+              <div className="mt-6 pt-4 border-t border-gray-300">
+                <p className="text-xs text-gray-500">
+                  © 2024 Strengths Africa. This report is confidential and intended solely for {userName}. 
+                  Unauthorized distribution is prohibited.
+                </p>
+              </div>
             </div>
-            <p className="text-gray-700 mb-2">Final Report • {userName}</p>
-            <p className="text-sm text-gray-500">
-              © 2024 Strengths Africa. Confidential document for {userName}.
-              Unauthorized distribution prohibited.
-            </p>
           </div>
         </div>
       </div>
