@@ -7,7 +7,7 @@ interface CategoryBreakdownChartProps {
   getCategoryName: (category: string) => string;
 }
 
-const COLORS = ['#C92A2A', '#2563EB', '#059669', '#D97706', '#7C3AED'];
+const COLORS = ['#C41E3A', '#2563EB', '#059669', '#D97706', '#7C3AED'];
 
 const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({ results, getCategoryName }) => {
   // Group strengths by category and calculate totals
@@ -22,19 +22,16 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({ results
   }, {} as Record<string, { total: number; count: number }>);
 
   const pieData = Object.entries(categoryData).map(([category, data], index) => ({
-    name: category.length > 20 ? category.substring(0, 17) + '...' : category,
+    name: category,
     value: Math.round((data.total / data.count) * 100) / 100,
-    percentage: Math.round((data.total / data.count / 7) * 100),
-    count: data.count
+    percentage: Math.round((data.total / data.count / 7) * 100)
   }));
 
-  const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, value }: any) => {
+  const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    if (percent < 0.05) return null; // Don't show labels for very small slices
 
     return (
       <text 
@@ -43,30 +40,12 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({ results
         fill="white" 
         textAnchor={x > cx ? 'start' : 'end'} 
         dominantBaseline="central"
-        fontSize="11"
+        fontSize="12"
         fontWeight="bold"
-        stroke="#000000"
-        strokeWidth={0.5}
-        paintOrder="stroke"
       >
         {`${(percent * 100).toFixed(0)}%`}
       </text>
     );
-  };
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-800">{data.name}</p>
-          <p className="text-sm text-gray-600">Average Score: {data.value.toFixed(1)}/7</p>
-          <p className="text-sm text-gray-600">Strengths: {data.count}</p>
-          <p className="text-sm text-gray-600">Percentage: {data.percentage}%</p>
-        </div>
-      );
-    }
-    return null;
   };
 
   return (
@@ -79,24 +58,18 @@ const CategoryBreakdownChart: React.FC<CategoryBreakdownChartProps> = ({ results
             cy="50%"
             labelLine={false}
             label={renderCustomLabel}
-            outerRadius={90}
-            innerRadius={30}
+            outerRadius={80}
             fill="#8884d8"
             dataKey="value"
-            stroke="#FFFFFF"
-            strokeWidth={2}
           >
             {pieData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip content={<CustomTooltip />} />
-          <Legend 
-            verticalAlign="bottom" 
-            height={36}
-            wrapperStyle={{ fontSize: '11px', color: '#374151', paddingTop: '10px' }}
-            iconType="circle"
+          <Tooltip 
+            formatter={(value: number) => [`${value.toFixed(1)}/7`, 'Average Score']}
           />
+          <Legend />
         </PieChart>
       </ResponsiveContainer>
     </div>

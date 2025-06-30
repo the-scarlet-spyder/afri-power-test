@@ -26,54 +26,61 @@ export const generateAdvancedReportPDF = async (
     // Wait for a moment to ensure all elements are rendered
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Get all report pages
-    const reportPages = reportElement.querySelectorAll('.report-page');
-    if (reportPages.length === 0) {
-      throw new Error('No report pages found');
-    }
-
-    // Create PDF
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
-    // Process each page
-    for (let i = 0; i < reportPages.length; i++) {
-      const pageElement = reportPages[i] as HTMLElement;
-      
-      // Create canvas from the page element
-      const canvas = await html2canvas(pageElement, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        width: pageElement.scrollWidth,
-        height: pageElement.scrollHeight,
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      
-      // Calculate the ratio to fit the image to PDF
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const scaledWidth = imgWidth * ratio;
-      const scaledHeight = imgHeight * ratio;
-      
-      // Center the image on the page
-      const imgX = (pdfWidth - scaledWidth) / 2;
-      const imgY = (pdfHeight - scaledHeight) / 2;
-
-      // Add the page to PDF
-      if (i > 0) {
-        pdf.addPage();
-      }
-      
-      pdf.addImage(imgData, 'PNG', imgX, imgY, scaledWidth, scaledHeight);
-    }
+    // Create canvas from the report element
+    const canvas = await html2canvas(reportElement, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      width: reportElement.scrollWidth,
+      height: reportElement.scrollHeight,
+    });
 
     // Hide the report element again
     reportElement.style.display = 'none';
+
+    // Create PDF
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = canvas.width;
+    const imgHeight = canvas.height;
+    
+    // Calculate the ratio to fit the image to PDF width
+    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+    const imgX = (pdfWidth - imgWidth * ratio) / 2;
+    const imgY = 0;
+
+    // If the image is taller than one page, we need to split it
+    const scaledHeight = imgHeight * ratio;
+    
+    if (scaledHeight <= pdfHeight) {
+      // Single page
+      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, scaledHeight);
+    } else {
+      // Multiple pages
+      let position = 0;
+      const pageHeight = pdfHeight;
+      
+      while (position < scaledHeight) {
+        pdf.addImage(
+          imgData, 
+          'PNG', 
+          imgX, 
+          -position, 
+          imgWidth * ratio, 
+          scaledHeight
+        );
+        
+        position += pageHeight;
+        
+        if (position < scaledHeight) {
+          pdf.addPage();
+        }
+      }
+    }
 
     // Save the PDF
     const fileName = `StrengthsAfrica_AdvancedReport_${userName.replace(/\s+/g, '_')}_${reportId}.pdf`;
@@ -82,13 +89,6 @@ export const generateAdvancedReportPDF = async (
     onSuccess();
   } catch (error) {
     console.error('Error generating advanced report PDF:', error);
-    
-    // Make sure to hide the report element in case of error
-    const reportElement = document.getElementById('advanced-report');
-    if (reportElement) {
-      reportElement.style.display = 'none';
-    }
-    
     onError(error);
   }
 };

@@ -45,23 +45,25 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/signup" element={
-                  <AuthGuard requireAuth={false} redirectPath="/welcome">
+                  <AuthGuard requireAuth={false} redirectPath="/payment">
                     <Signup />
                   </AuthGuard>
                 } />
                 <Route path="/login" element={
-                  <AuthGuard requireAuth={false} redirectPath="/welcome">
+                  <AuthGuard requireAuth={false} redirectPath="/payment">
                     <Login />
-                  </AuthGuard>
-                } />
-                <Route path="/welcome" element={
-                  <AuthGuard>
-                    <Welcome />
                   </AuthGuard>
                 } />
                 <Route path="/payment" element={
                   <AuthGuard>
                     <Payment />
+                  </AuthGuard>
+                } />
+                <Route path="/welcome" element={
+                  <AuthGuard>
+                    <PaymentGuard>
+                      <Welcome />
+                    </PaymentGuard>
                   </AuthGuard>
                 } />
                 <Route path="/test" element={
