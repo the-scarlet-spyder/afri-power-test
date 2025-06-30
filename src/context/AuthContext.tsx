@@ -138,25 +138,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     try {
-      // Get window location to dynamically set the redirect URL
+      // Get the current origin to ensure we redirect to the correct domain
       const { origin } = window.location;
       
-      console.log("Starting Google sign-in process with redirect URL:", origin);
+      console.log("Starting Google sign-in process with origin:", origin);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${origin}/payment`,
+          redirectTo: `${origin}/welcome`,
           queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
+            access_type: 'online',
+            prompt: 'select_account',
           }
         },
       });
       
       if (error) throw error;
       
-      console.log("Google sign-in initiated", data);
+      console.log("Google sign-in initiated successfully", data);
     } catch (error: any) {
       console.error("Google sign-in error:", error.message);
       throw error;
