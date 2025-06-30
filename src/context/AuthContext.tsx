@@ -40,7 +40,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) {
           console.error('Error checking session:', error);
           setUser(null);
-          setIsLoading(false);
           return;
         }
 
@@ -137,6 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signInWithGoogle = async () => {
+    setIsLoading(true);
     try {
       // Get window location to dynamically set the redirect URL
       const { origin } = window.location;
@@ -146,7 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${origin}/payment`,
+          redirectTo: origin,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -160,6 +160,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error: any) {
       console.error("Google sign-in error:", error.message);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 

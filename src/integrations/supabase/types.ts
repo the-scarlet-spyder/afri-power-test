@@ -80,48 +80,6 @@ export type Database = {
           },
         ]
       }
-      discount_codes: {
-        Row: {
-          code: string
-          created_at: string | null
-          discount_amount: number | null
-          discount_percentage: number | null
-          id: string
-          is_active: boolean | null
-          times_used: number | null
-          updated_at: string | null
-          usage_limit: number | null
-          valid_from: string | null
-          valid_until: string | null
-        }
-        Insert: {
-          code: string
-          created_at?: string | null
-          discount_amount?: number | null
-          discount_percentage?: number | null
-          id?: string
-          is_active?: boolean | null
-          times_used?: number | null
-          updated_at?: string | null
-          usage_limit?: number | null
-          valid_from?: string | null
-          valid_until?: string | null
-        }
-        Update: {
-          code?: string
-          created_at?: string | null
-          discount_amount?: number | null
-          discount_percentage?: number | null
-          id?: string
-          is_active?: boolean | null
-          times_used?: number | null
-          updated_at?: string | null
-          usage_limit?: number | null
-          valid_from?: string | null
-          valid_until?: string | null
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           created_at: string | null
@@ -153,11 +111,7 @@ export type Database = {
         Row: {
           access_code_id: string | null
           created_at: string | null
-          discount_amount: number | null
-          discount_code_used: string | null
-          final_amount: number | null
           id: string
-          original_amount: number | null
           responses: Json
           results: Json
           test_date: string | null
@@ -166,11 +120,7 @@ export type Database = {
         Insert: {
           access_code_id?: string | null
           created_at?: string | null
-          discount_amount?: number | null
-          discount_code_used?: string | null
-          final_amount?: number | null
           id?: string
-          original_amount?: number | null
           responses: Json
           results: Json
           test_date?: string | null
@@ -179,11 +129,7 @@ export type Database = {
         Update: {
           access_code_id?: string | null
           created_at?: string | null
-          discount_amount?: number | null
-          discount_code_used?: string | null
-          final_amount?: number | null
           id?: string
-          original_amount?: number | null
           responses?: Json
           results?: Json
           test_date?: string | null
